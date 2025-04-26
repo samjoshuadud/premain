@@ -424,6 +424,7 @@ Partial Public Class User
                 End If
 
                 ' Construct the SQL query with parameters (Middle Initial can be NULL)
+                ' Note: FullName is a computed column, so we don't include it in the INSERT statement
                 Dim query = "INSERT INTO Users (FirstName, MiddleInitial, LastName, Username, Password, Email, Role, Gender, Age, Address, PhoneNumber, DateCreated) 
        VALUES (@FirstName, @MiddleInitial, @LastName, @Username, @Password, @Email, @Role, @Gender, @Age, @Address, @PhoneNumber, GETDATE())"
 
@@ -640,6 +641,7 @@ Partial Public Class User
                         connection.Open()
 
                         ' Construct the SQL query to update the user with parameters in the desired order
+                        ' Note: FullName is a computed column, so we don't include it in the UPDATE statement
                         Dim query = "UPDATE Users SET 
                                    FirstName = @FirstName, 
                                    MiddleInitial = @MiddleInitial, 

@@ -75,6 +75,7 @@ Public Class CreateAdminForm
             conn.Open()
             
             ' SQL query to insert a new admin user with all required fields
+            ' Note: FullName is a computed column, so we don't need to include it in the INSERT statement
             Dim query As String = "INSERT INTO Users (Username, Password, FirstName, MiddleInitial, LastName, 
                                   Email, Role, Gender, Age, Address, PhoneNumber, DateCreated) 
                                   VALUES (@Username, @Password, @FirstName, @MiddleInitial, @LastName, 

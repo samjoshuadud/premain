@@ -38,8 +38,8 @@ Public Class Login
                 
                 ' First check if the Users table exists
                 If TableExists("Users") Then
-                    ' Query to check if any Admin users exist
-                    Dim query As String = "SELECT COUNT(*) FROM Users WHERE Role = 'Admin'"
+                    ' Query to check if any Admin users exist - using case-insensitive LIKE with wildcards
+                    Dim query As String = "SELECT COUNT(*) FROM Users WHERE UPPER(Role) LIKE '%ADMIN%'"
                     
                     Using cmd As New SqlCommand(query, conn)
                         Dim adminCount As Integer = Convert.ToInt32(cmd.ExecuteScalar())
@@ -133,22 +133,25 @@ Public Class Login
             Using conn As New SqlConnection(connectionString)
                 conn.Open()
                 
-                ' SQL query to create the Users table
+                ' SQL query to create the Users table with FullName as a computed column
                 Dim query As String = "
                 CREATE TABLE Users (
                     UserID INT IDENTITY(1,1) PRIMARY KEY,
                     Username NVARCHAR(50) NOT NULL UNIQUE,
                     Password NVARCHAR(100) NOT NULL,
-                    FullName NVARCHAR(100) NOT NULL,
+                    FirstName NVARCHAR(50) NOT NULL,
+                    MiddleInitial NVARCHAR(10) NULL,
+                    LastName NVARCHAR(50) NOT NULL,
                     Email NVARCHAR(100),
                     Role NVARCHAR(20) NOT NULL,
-                    FirstName NVARCHAR(50),
-                    MiddleInitial NVARCHAR(10),
-                    LastName NVARCHAR(50),
                     Gender NVARCHAR(10),
                     Age INT,
                     Address NVARCHAR(200),
-                    PhoneNumber NVARCHAR(20)
+                    PhoneNumber NVARCHAR(20),
+                    DateCreated DATETIME DEFAULT GETDATE(),
+                    FullName AS (CONCAT(FirstName, 
+                                CASE WHEN MiddleInitial IS NULL THEN '' ELSE ' ' + MiddleInitial END, 
+                                ' ' + LastName))
                 )"
                 
                 Using cmd As New SqlCommand(query, conn)
@@ -194,8 +197,8 @@ Public Class Login
             Using conn As New SqlConnection(connectionString)
                 conn.Open()
 
-                ' SQL query to validate user with plain-text password and get role
-                Dim query = "SELECT UserID, FullName, Role FROM Users WHERE Username = @Username AND Password = @Password"
+                ' Modified SQL query to use name components instead of FullName
+                Dim query = "SELECT UserID, FirstName, MiddleInitial, LastName, Role FROM Users WHERE Username = @Username AND Password = @Password"
                 Using cmd As New SqlCommand(query, conn)
                     ' Add parameters to prevent SQL injection
                     cmd.Parameters.AddWithValue("@Username", username)
@@ -206,8 +209,21 @@ Public Class Login
                         If reader.Read Then
                             ' Retrieve user information
                             Dim userId As Integer = reader("UserID")
-                            Dim fullName = reader("FullName").ToString
                             Dim role = reader("Role").ToString
+                            
+                            ' Construct full name from components
+                            Dim firstName = reader("FirstName").ToString()
+                            Dim middleInitial = If(reader.IsDBNull(reader.GetOrdinal("MiddleInitial")), "", reader("MiddleInitial").ToString())
+                            Dim lastName = reader("LastName").ToString()
+                            
+                            ' Build the full name
+                            Dim fullName = firstName
+                            If Not String.IsNullOrWhiteSpace(middleInitial) Then
+                                fullName &= " " & middleInitial
+                            End If
+                            If Not String.IsNullOrWhiteSpace(lastName) Then
+                                fullName &= " " & lastName
+                            End If
 
                             ' Store user info in SessionData
                             CurrentUserId = userId

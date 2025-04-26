@@ -334,7 +334,7 @@ Public Class Inventory
         Using conn As New SqlConnection(connectionString)
             Try
                 conn.Open()
-                Dim query As String = "SELECT WholesaleDiscount FROM Products WHERE ProductID = @ProductID"
+                Dim query As String = "SELECT WholesaleDiscount FROM Inventory WHERE ProductID = @ProductID"
                 Using cmd As New SqlCommand(query, conn)
                     cmd.Parameters.AddWithValue("@ProductID", productId)
                     Dim result = cmd.ExecuteScalar()

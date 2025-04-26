@@ -14,7 +14,7 @@ Public Class Product
     Private Sub Product_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         ' Setup the column index change handler
         SetupColumnDisplayIndexChangedHandler()
-        
+
         ' Load categories and products
         LoadCategories()
         LoadProducts() ' This will load products and add the Edit column
@@ -54,7 +54,7 @@ Public Class Product
         If dgvProduct.Columns.Contains("Edit") Then
             ' Log the current status of all columns (to debug ordering issues)
             DebugColumnOrder("Before reordering")
-            
+
             ' Get index of the last visible column (to avoid invisible columns issue)
             Dim lastVisibleIndex As Integer = 0
             For i As Integer = 0 To dgvProduct.Columns.Count - 1
@@ -62,22 +62,22 @@ Public Class Product
                     lastVisibleIndex = Math.Max(lastVisibleIndex, dgvProduct.Columns(i).DisplayIndex)
                 End If
             Next
-            
+
             ' Set the DisplayIndex to be one higher than the highest other column
             dgvProduct.Columns("Edit").DisplayIndex = lastVisibleIndex + 1
-            
+
             ' Additional check to make visible
             dgvProduct.Columns("Edit").Visible = True
-            
+
             ' Force layout update
             dgvProduct.PerformLayout()
             dgvProduct.Refresh()
-            
+
             ' Log the result after reordering
             DebugColumnOrder("After reordering")
         End If
     End Sub
-    
+
     ' Debug helper to print column order to console
     Private Sub DebugColumnOrder(message As String)
         Dim columnInfo As String = $"{message}:{Environment.NewLine}"
@@ -86,7 +86,7 @@ Public Class Product
             columnInfo &= $"Column {i}: Name={col.Name}, DisplayIndex={col.DisplayIndex}, Visible={col.Visible}{Environment.NewLine}"
         Next
         Debug.WriteLine(columnInfo)
-        
+
         ' Also write to a message box during debugging (can be removed in production)
         ' MessageBox.Show(columnInfo, "Column Debug")
     End Sub
@@ -115,14 +115,14 @@ Public Class Product
                     row("Barcode") = "No Barcode Yet"
                 End If
             Next
-            
+
             ' Remove any existing Edit columns before setting data source
             For i As Integer = dgvProduct.Columns.Count - 1 To 0 Step -1
                 If dgvProduct.Columns(i).Name = "Edit" Then
                     dgvProduct.Columns.RemoveAt(i)
                 End If
             Next
-            
+
             ' Set the DataSource
             dgvProduct.DataSource = dt
 
@@ -143,17 +143,17 @@ Public Class Product
 
             ' Wait for all columns to be created and visible settings applied
             Application.DoEvents()
-            
+
             ' Add the Edit column (always after setting DataSource)
             AddSelectEditColumn()
-            
+
             ' Move the Barcode column to the first position LAST (important ordering)
             ' This must happen AFTER adding the Edit column to prevent ordering issues
             If dgvProduct.Columns.Contains("Barcode") Then
                 dgvProduct.Columns("Barcode").DisplayIndex = 0
                 dgvProduct.PerformLayout()
             End If
-            
+
             ' Set column widths and auto-size mode
             If dgvProduct.Columns.Contains("ProductName") Then
                 dgvProduct.Columns("ProductName").Width = 400
@@ -162,10 +162,10 @@ Public Class Product
 
             ' Prevent the extra row from showing
             dgvProduct.AllowUserToAddRows = False
-            
+
             ' Final check to ensure Edit column is at the end (after all other column adjustments)
             EnsureEditColumnIsLast()
-            
+
             ' Freeze the grid briefly then refresh to stabilize layout
             dgvProduct.Enabled = False
             Application.DoEvents()
@@ -298,25 +298,17 @@ Public Class Product
                 productId = Convert.ToInt32(command.ExecuteScalar())
             End Using
 
-            ' Insert barcode and unit price into Inventory table
-            Using connection As New SqlConnection(connectionString)
-                connection.Open()
-
-                Dim command As New SqlCommand("INSERT INTO Inventory (ProductID, QuantityInStock) VALUES (@ProductID, @QuantityInStock)", connection)
-                command.Parameters.AddWithValue("@ProductID", productId)
-                command.Parameters.AddWithValue("@QuantityInStock", 0) ' Set a default value, e.g., 0
-                command.ExecuteNonQuery()
-            End Using
+            ' Removed the Inventory insertion logic here
 
             MessageBox.Show("Product has been successfully added!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information)
 
             ' Reset form and hide panel
             ResetForm()
             PanelProduct.Visible = False
-            
+
             ' Reload products
             LoadProducts()
-            
+
             ' Additional check to ensure Edit column is last
             EnsureEditColumnIsLast()
 
@@ -413,7 +405,7 @@ Public Class Product
                 LoadProducts()
                 PanelProduct.Visible = False
             End Using
-            
+
             ' After successful update and reloading products
             EnsureEditColumnIsLast() ' Make sure Edit column stays at the end
         Catch ex As Exception
@@ -457,6 +449,15 @@ Public Class Product
         If confirmResult = DialogResult.Yes Then
             Try
                 ' Proceed with deleting the product
+
+                Using connection As New SqlConnection(connectionString)
+                    connection.Open()
+                    Dim command As New SqlCommand("DELETE FROM Inventory WHERE ProductID = @ProductID", connection)
+                    command.Parameters.AddWithValue("@ProductID", selectedProductID)
+                    command.ExecuteNonQuery()
+                End Using
+
+
                 Using connection As New SqlConnection(connectionString)
                     connection.Open()
                     Dim command As New SqlCommand("DELETE FROM Products WHERE ProductID = @ProductID", connection)
@@ -473,7 +474,7 @@ Public Class Product
 
                 ' Reload products (this will re-add the Edit column)
                 LoadProducts()
-                
+
                 ' After reloading products
                 EnsureEditColumnIsLast() ' Make sure Edit column stays at the end
 
@@ -522,7 +523,7 @@ Public Class Product
 
         ' Add the column to the DataGridView
         dgvProduct.Columns.Add(editColumn)
-        
+
         ' Apply column order immediately
         dgvProduct.PerformLayout()
     End Sub
@@ -918,7 +919,7 @@ Public Class Product
                 dgvProduct.Columns.RemoveAt(i)
             End If
         Next
-        
+
         Dim query As String = "SELECT p.ProductID, p.ProductName, c.CategoryName, i.Barcode, i.UnitPrice, p.Expiration, p.Image " &
                           "FROM Products p " &
                           "INNER JOIN Categories c ON p.CategoryID = c.CategoryID " &
@@ -936,29 +937,29 @@ Public Class Product
                     conn.Open()
                     ' Fill the table with data
                     adapter.Fill(table)
-                    
+
                     ' Bind the results to the DataGridView
                     dgvProduct.DataSource = table
-                    
+
                     ' Hide any columns we don't want to show
                     If dgvProduct.Columns.Contains("ProductID") Then
                         dgvProduct.Columns("ProductID").Visible = False
                     End If
-                    
+
                     If dgvProduct.Columns.Contains("UnitPrice") Then
                         dgvProduct.Columns("UnitPrice").Visible = False
                     End If
-                    
+
                     If dgvProduct.Columns.Contains("Image") Then
                         dgvProduct.Columns("Image").Visible = False
                     End If
-                    
+
                     ' Always add the Edit column after setting DataSource
                     AddSelectEditColumn()
-                    
+
                     ' Ensure Edit column is at the end
                     EnsureEditColumnIsLast()
-                    
+
                 Catch ex As Exception
                     ' Handle the error (displaying it in a message box here)
                     MessageBox.Show("Database Error: " & ex.Message)
@@ -1020,13 +1021,13 @@ Public Class Product
             If e.Column.Name <> "Edit" AndAlso dgvProduct.Columns.Contains("Edit") Then
                 ' Use BeginInvoke to avoid recursive event triggering
                 dgvProduct.BeginInvoke(Sub()
-                                          ' Only reposition if Edit isn't already last
-                                          Dim editCol = dgvProduct.Columns("Edit")
-                                          If editCol.DisplayIndex <> dgvProduct.Columns.Count - 1 Then
-                                              ' Set Edit column to be last
-                                              editCol.DisplayIndex = dgvProduct.Columns.Count - 1
-                                          End If
-                                      End Sub)
+                                           ' Only reposition if Edit isn't already last
+                                           Dim editCol = dgvProduct.Columns("Edit")
+                                           If editCol.DisplayIndex <> dgvProduct.Columns.Count - 1 Then
+                                               ' Set Edit column to be last
+                                               editCol.DisplayIndex = dgvProduct.Columns.Count - 1
+                                           End If
+                                       End Sub)
             End If
         End If
     End Sub
