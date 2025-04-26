@@ -1011,7 +1011,7 @@ Public Class POS
         For Each originalLineRaw As String In lines
             Dim originalLine As String = originalLineRaw.Trim()
             Dim baseFontSize As Single = maxRegularFontSize
-            Dim fontStyle As FontStyle = FontStyle.Bold
+            Dim fontStyle As FontStyle = fontStyle.Bold
 
             ' Decide font size based on content
             If originalLine.Equals("SHIENA MINI GROCERY STORE", StringComparison.OrdinalIgnoreCase) OrElse
