@@ -27,8 +27,8 @@ Public Class Login
             Using conn As New SqlConnection(connectionString)
                 conn.Open()
 
-                ' SQL query to validate user with plain-text password
-                Dim query = "SELECT UserID, FullName FROM Users WHERE Username = @Username AND Password = @Password"
+                ' SQL query to validate user with plain-text password and get role
+                Dim query = "SELECT UserID, FullName, Role FROM Users WHERE Username = @Username AND Password = @Password"
                 Using cmd As New SqlCommand(query, conn)
                     ' Add parameters to prevent SQL injection
                     cmd.Parameters.AddWithValue("@Username", username)
@@ -40,15 +40,17 @@ Public Class Login
                             ' Retrieve user information
                             Dim userId As Integer = reader("UserID")
                             Dim fullName = reader("FullName").ToString
+                            Dim role = reader("Role").ToString
 
-                            ' Optional: Store user info if needed
+                            ' Store user info in SessionData
                             CurrentUserId = userId
                             SessionData.fullName = fullName
+                            SessionData.role = role  ' Store the role in SessionData
 
                             ' Log the login action in the loghistory table
-                            LogHistoryEntry("User", fullName, "User Logged In")
+                            LogHistoryEntry(role, fullName, "User Logged In")
 
-                            ' Show the main form to all users (no role checking)
+                            ' Show the main form to all users
                             Dim mainForm As New Main(fullName)
                             Hide()
                             mainForm.ShowDialog()
