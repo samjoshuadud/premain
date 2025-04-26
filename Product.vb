@@ -449,15 +449,6 @@ Public Class Product
         If confirmResult = DialogResult.Yes Then
             Try
                 ' Proceed with deleting the product
-
-                Using connection As New SqlConnection(connectionString)
-                    connection.Open()
-                    Dim command As New SqlCommand("DELETE FROM Inventory WHERE ProductID = @ProductID", connection)
-                    command.Parameters.AddWithValue("@ProductID", selectedProductID)
-                    command.ExecuteNonQuery()
-                End Using
-
-
                 Using connection As New SqlConnection(connectionString)
                     connection.Open()
                     Dim command As New SqlCommand("DELETE FROM Products WHERE ProductID = @ProductID", connection)

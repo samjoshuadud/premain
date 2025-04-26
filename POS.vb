@@ -867,15 +867,13 @@ Public Class POS
             sb.AppendLine("           ** WHOLESALE MODE **            ")
         End If
 
-        sb.AppendLine(New String("-"c, 150))
+        sb.AppendLine(New String("-"c, 40))
         sb.AppendLine($"Date: {DateTime.Now:MM/dd/yyyy HH:mm:ss}")
-        ' Commented out Cashier line to hide it
-        ' sb.AppendLine($"Cashier: {SessionData.fullName}")  
         sb.AppendLine($"{invoiceNumber}")
         sb.AppendLine($"{transNumber}")
-        sb.AppendLine(New String("-"c, 150))
-        sb.AppendLine("ITEM                  QTY   PRICE    TOTAL")
-        sb.AppendLine(New String("-"c, 150))
+        sb.AppendLine(New String("-"c, 40))
+        sb.AppendLine("ITEM                QTY   PRICE     TOTAL")
+        sb.AppendLine(New String("-"c, 40))
 
         ' Track if any wholesale discounts were applied
         Dim hasWholesaleDiscount As Boolean = False
@@ -907,20 +905,22 @@ Public Class POS
 
             ' Truncate long item names and format for proper alignment
             Dim shortName As String = itemName
-            If shortName.Length > 18 Then
-                shortName = shortName.Substring(0, 15) & "..."
+            If shortName.Length > 16 Then
+                shortName = shortName.Substring(0, 16) & "..."
             End If
-            shortName = shortName.PadRight(20, " "c)
+            shortName = shortName.PadRight(18, " "c)
 
-            ' Create the formatted line with proper padding
-            Dim quantityStr As String = quantity.ToString().PadLeft(5, " "c)
-            Dim unitPriceStr As String = unitPrice.ToString("0.00").PadLeft(6, " "c)
-            Dim totalPriceStr As String = totalPrice.ToString("0.00").PadLeft(6, " "c)
-            sb.AppendLine($"{shortName}{quantityStr}   {unitPriceStr}   {totalPriceStr}")
+            ' Format quantity, price, and total with fixed widths
+            Dim quantityStr As String = quantity.ToString().PadLeft(4, " "c)
+            Dim unitPriceStr As String = unitPrice.ToString("0.00").PadLeft(8, " "c)
+            Dim totalPriceStr As String = totalPrice.ToString("0.00").PadLeft(9, " "c)
+
+            ' Append the formatted line to the receipt
+            sb.AppendLine($"{shortName}{quantityStr} {unitPriceStr} {totalPriceStr}")
         Next
 
         ' Summary section
-        sb.AppendLine(New String("-"c, 150))
+        sb.AppendLine(New String("-"c, 40))
 
         Dim subtotal As Decimal = Convert.ToDecimal(lblSubtotal.Text.Replace("₱", "").Trim())
         Dim discount As Decimal = Convert.ToDecimal(lblDiscount.Text.Replace("₱", "").Trim())
@@ -930,38 +930,29 @@ Public Class POS
         Decimal.TryParse(txtAmountPaid.Text, cashAmount)
         Dim changeAmount As Decimal = Convert.ToDecimal(lblChange.Text.Replace("₱", "").Trim())
 
-        sb.AppendLine($"ITEMS COUNT:                 {cart.Rows.Count}")
-        sb.AppendLine($"SUBTOTAL:                   ₱ {subtotal:0.00}")
+        sb.AppendLine($"ITEMS COUNT:         {cart.Rows.Count}")
+        sb.AppendLine($"SUBTOTAL:         ₱ {subtotal:0.00}")
 
         ' Only show discount if it's greater than 0
         If discount > 0 Then
             Dim discountRate As Decimal = GetCurrentDiscount()
-            sb.AppendLine($"DISCOUNT ({discountRate}%):           ₱ {discount:0.00}")
+            sb.AppendLine($"DISCOUNT ({discountRate}%): ₱ {discount:0.00}")
         End If
 
         ' Add wholesale discount information if any wholesale items exist
         If hasWholesaleDiscount Then
-            sb.AppendLine($"WHOLESALE SAVINGS:          ₱ {totalWholesaleDiscount:0.00}")
+            sb.AppendLine($"WHOLESALE SAVINGS:  ₱ {totalWholesaleDiscount:0.00}")
         End If
 
-        sb.AppendLine($"VAT (12%):                  ₱ {vat:0.00}")
-
-        ' NEW: Add Vatable Sales / Price Without VAT
-        Dim vatableSales As Decimal = totalDue / 1.12
-        sb.AppendLine($"VATABLE SALES:              ₱ {vatableSales:0.00}")
-
-        sb.AppendLine(New String("-"c, 150))
-
-        sb.AppendLine($"TOTAL:                      ₱ {totalDue:0.00}")
-        sb.AppendLine($"CASH:                       ₱ {cashAmount:0.00}")
-        sb.AppendLine($"CHANGE:                     ₱ {changeAmount:0.00}")
-        sb.AppendLine(New String("-"c, 150))
+        sb.AppendLine($"VAT (12%):         ₱ {vat:0.00}")
+        sb.AppendLine($"TOTAL:             ₱ {totalDue:0.00}")
+        sb.AppendLine($"CASH:              ₱ {cashAmount:0.00}")
+        sb.AppendLine($"CHANGE:            ₱ {changeAmount:0.00}")
+        sb.AppendLine(New String("-"c, 40))
 
         ' Additional information section
         sb.AppendLine("           THANK YOU FOR SHOPPING!           ")
         sb.AppendLine("   This serves as your official receipt.     ")
-
-        ' Add wholesale terms if in wholesale mode
         sb.AppendLine("   Items can be returned within 7 days       ")
         sb.AppendLine("   with receipt and in original condition.   ")
 
@@ -1662,6 +1653,16 @@ Public Class POS
 
     ' Call the visual enhancement in the form load
     Private Sub POS_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        ' Set form properties for proper resizing in parent container
+        Me.Dock = DockStyle.Fill
+        Me.AutoScaleMode = AutoScaleMode.Font
+        Me.AutoScaleDimensions = New SizeF(10.0F, 25.0F)
+
+        ' Ensure the form handles resizing properly
+        Me.SuspendLayout()
+        Me.FormBorderStyle = FormBorderStyle.None
+        Me.ResumeLayout(False)
+
         ' Initialize the cart and UI components
         InitializeCart()
         DisplayDateAndTime()
@@ -1724,8 +1725,57 @@ Public Class POS
             End If
         Next
 
+        ' Force an immediate layout update
+        Me.PerformLayout()
+
+        ' Make sure parent container is also properly resized
+        If Me.Parent IsNot Nothing Then
+            Me.Parent.PerformLayout()
+        End If
+
         ' Initial resize to set correct positions
-        POS_Resize(Nothing, Nothing)
+        HandleFormResize()
+    End Sub
+
+    Private Sub POS_Resize(sender As Object, e As EventArgs) Handles MyBase.Resize
+        HandleFormResize()
+    End Sub
+
+    ' Separate method to handle form resizing to avoid code duplication
+    Private Sub HandleFormResize()
+        ' Adjust panel positions and sizes when form is resized
+        If Me.WindowState <> FormWindowState.Minimized Then
+            ' Recalculate positions of panels
+            Panel1.Width = CInt(Me.ClientSize.Width * 0.7) ' 70% of form width
+            Panel2.Width = CInt(Me.ClientSize.Width * 0.3) ' 30% of form width
+            Panel2.Left = Panel1.Width
+
+            ' Adjust height of panels
+            Panel1.Height = Me.ClientSize.Height
+            Panel2.Height = Me.ClientSize.Height
+
+            ' Adjust DataGridView size
+            dgvCart.Width = Panel1.Width - 20
+            dgvCart.Height = CInt(Panel1.Height * 0.6)
+
+            ' Center PanelPay if visible
+            If PanelPay.Visible Then
+                PanelPay.Left = (Me.ClientSize.Width - PanelPay.Width) \ 2
+                PanelPay.Top = (Me.ClientSize.Height - PanelPay.Height) \ 2
+            End If
+
+            ' Center PanelQuantity if visible
+            If PanelQuantity.Visible Then
+                PanelQuantity.Left = (Me.ClientSize.Width - PanelQuantity.Width) \ 2
+                PanelQuantity.Top = (Me.ClientSize.Height - PanelQuantity.Height) \ 2
+            End If
+
+            ' Center DiscountPanel if visible
+            If DiscountPanel.Visible Then
+                DiscountPanel.Left = (Me.ClientSize.Width - DiscountPanel.Width) \ 2
+                DiscountPanel.Top = (Me.ClientSize.Height - DiscountPanel.Height) \ 2
+            End If
+        End If
     End Sub
 
     ' Add keyboard shortcuts for common actions
@@ -1959,41 +2009,5 @@ Public Class POS
 
     Private Sub txtProduct_TextChanged(sender As Object, e As EventArgs) Handles txtProduct.TextChanged
 
-    End Sub
-
-    Private Sub POS_Resize(sender As Object, e As EventArgs) Handles MyBase.Resize
-        ' Adjust panel positions and sizes when form is resized
-        If Me.WindowState <> FormWindowState.Minimized Then
-            ' Recalculate positions of panels
-            Panel1.Width = CInt(Me.ClientSize.Width * 0.7) ' 70% of form width
-            Panel2.Width = CInt(Me.ClientSize.Width * 0.3) ' 30% of form width
-            Panel2.Left = Panel1.Width
-
-            ' Adjust height of panels
-            Panel1.Height = Me.ClientSize.Height
-            Panel2.Height = Me.ClientSize.Height
-
-            ' Adjust DataGridView size
-            dgvCart.Width = Panel1.Width - 20
-            dgvCart.Height = CInt(Panel1.Height * 0.6)
-
-            ' Center PanelPay if visible
-            If PanelPay.Visible Then
-                PanelPay.Left = (Me.ClientSize.Width - PanelPay.Width) \ 2
-                PanelPay.Top = (Me.ClientSize.Height - PanelPay.Height) \ 2
-            End If
-
-            ' Center PanelQuantity if visible
-            If PanelQuantity.Visible Then
-                PanelQuantity.Left = (Me.ClientSize.Width - PanelQuantity.Width) \ 2
-                PanelQuantity.Top = (Me.ClientSize.Height - PanelQuantity.Height) \ 2
-            End If
-
-            ' Center DiscountPanel if visible
-            If DiscountPanel.Visible Then
-                DiscountPanel.Left = (Me.ClientSize.Width - DiscountPanel.Width) \ 2
-                DiscountPanel.Top = (Me.ClientSize.Height - DiscountPanel.Height) \ 2
-            End If
-        End If
     End Sub
 End Class

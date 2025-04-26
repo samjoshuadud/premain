@@ -27,24 +27,77 @@ Public Class Main
 
     End Sub
 
-    ' Form Load event to display the Full Name and total products
     ' Main form load event to initialize UI and start automatic refresh
     Private Sub Main_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         ' Initialize the UI components and load data
         Me.FormBorderStyle = FormBorderStyle.None
+        
+        ' Set the window size and position
+        SetFormSizeAndPosition()
+        
+        ' Set the main panel to be properly anchored and sized
+        MainPanel.Dock = DockStyle.Fill
+        MainPanel.Visible = False
+        
+        SetupEventHandlers()
         LoadUI()
 
         ' Start the timer to automatically refresh the data every 30 seconds (30000 milliseconds)
         Timer2.Interval = 30000 ' Set the interval to 30 seconds
         Timer2.Start()
 
+        ' Check database connection and create admin if needed
+        ' ... existing code ...
+    End Sub
+    
+    ' Method to set the form size and position based on screen resolution
+    Private Sub SetFormSizeAndPosition()
+        ' Get the primary screen working area (excludes taskbar)
+        Dim screen As System.Windows.Forms.Screen = System.Windows.Forms.Screen.PrimaryScreen
+        Dim workingArea As Rectangle = screen.WorkingArea
+        
+        ' Set the form size to 90% of the screen
+        Me.Width = CInt(workingArea.Width * 0.9)
+        Me.Height = CInt(workingArea.Height * 0.9)
+        
+        ' Center the form on the screen
+        Me.Location = New Point(
+            CInt((workingArea.Width - Me.Width) / 2),
+            CInt((workingArea.Height - Me.Height) / 2))
+            
+        ' Ensure form doesn't exceed screen bounds
+        If Me.Width > workingArea.Width Then Me.Width = workingArea.Width
+        If Me.Height > workingArea.Height Then Me.Height = workingArea.Height
+    End Sub
+    
+    ' Handle form resize event to maintain proper layout
+    Private Sub Main_Resize(sender As Object, e As EventArgs)
+        ' Ensure the ButtonPanel fills the form
+        ButtonPanel.Width = Me.ClientSize.Width - ButtonPanel.Left
+        ButtonPanel.Height = Me.ClientSize.Height - ButtonPanel.Top
+        
+        ' Refresh layout to ensure child controls are properly sized
+        ButtonPanel.PerformLayout()
+        
+        ' If MainPanel is visible, ensure proper layout of its contents
+        If MainPanel.Visible AndAlso MainPanel.Controls.Count > 0 Then
+            Dim childForm As Form = TryCast(MainPanel.Controls(0), Form)
+            If childForm IsNot Nothing Then
+                ' Force the child form to redraw
+                childForm.PerformLayout()
+            End If
+        End If
+    End Sub
 
+    ' Add the event handler during form initialization
+    Private Sub SetupEventHandlers()
+        AddHandler Me.Resize, AddressOf Main_Resize
     End Sub
 
     ' Method to load the UI components and data initially
     Private Sub LoadUI()
         ' Display the Full Name in the label
-        lblFullname.Text = "Welcome, " & fullName
+        lblFullname.Text = "Welcome, " & userFullName
 
         ' Start the timer for the clock or any other ongoing task
         Timer1.Start()
@@ -74,10 +127,6 @@ Public Class Main
         ButtonStyler.ApplyStyle(btnLogOut)
         ButtonStyler.ApplyStyle(btnChangePassword)
 
-
-        ' Set the size of the main panel
-        MainPanel.Size = New Size(1442, 684)
-
         ' Set tooltips for buttons
         toolTip.SetToolTip(btnDashboard, "Dashboard - Click To View The Dashboard.")
         toolTip.SetToolTip(btnPOS, "Point of Sale (POS) - Click To Open POS.")
@@ -87,10 +136,10 @@ Public Class Main
         toolTip.SetToolTip(btnReports, "Reports - Click To View Available Reports.")
         toolTip.SetToolTip(btnLogOut, "Log Out - Click To Log Out From The System.")
 
-
-
-
-
+        ' Ensure Panel5 is visible initially and MainPanel is hidden
+        Panel5.Visible = True
+        Panel5.Dock = DockStyle.Fill
+        MainPanel.Visible = False
     End Sub
 
     ' Method to reload all UI components and data
@@ -229,19 +278,35 @@ Public Class Main
 
 
 
-    ' Function to show a form inside a panel
+    ' Function to show a form inside a panel with proper resizing
     Private Sub ShowFormInPanel(childForm As Form)
         ' Clear previous form inside the panel
         MainPanel.Controls.Clear()
 
-        ' Set form properties
+        ' Ensure panel is properly sized before adding the form
+        ' This is crucial for different screen resolutions
+        MainPanel.Visible = True
+        MainPanel.Dock = DockStyle.Fill
+        MainPanel.BringToFront()
+        
+        ' Remove Panel5 to prevent overlap issues
+        If Panel5.Visible Then
+            Panel5.Visible = False
+        End If
+
+        ' Set form properties for proper display
         childForm.TopLevel = False
         childForm.FormBorderStyle = FormBorderStyle.None
         childForm.Dock = DockStyle.Fill
-
+        
         ' Add to panel and show
         MainPanel.Controls.Add(childForm)
+        childForm.BringToFront()
         childForm.Show()
+        
+        ' Force layout update
+        MainPanel.PerformLayout()
+        Application.DoEvents()
     End Sub
 
 
@@ -553,7 +618,11 @@ Public Class Main
     '================= MAIN BUTTONS ==============================
 
     Private Sub btnDashboard_Click(sender As Object, e As EventArgs) Handles btnDashboard.Click
+        ' Hide MainPanel and show the dashboard panel
         MainPanel.Visible = False
+        MainPanel.Controls.Clear()
+        Panel5.Visible = True
+        Panel5.BringToFront()
         ReloadUI()
     End Sub
 

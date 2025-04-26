@@ -186,10 +186,12 @@ Partial Class Main
         UserPanel.Controls.Add(Label7)
         UserPanel.Controls.Add(lblDateTime)
         UserPanel.Controls.Add(lblFullname)
-        UserPanel.Location = New Point(29, 13)
+        UserPanel.Dock = DockStyle.Top
+        UserPanel.Location = New Point(0, 0)
         UserPanel.Name = "UserPanel"
-        UserPanel.Size = New Size(1786, 82)
+        UserPanel.Size = New Size(1793, 82)
         UserPanel.TabIndex = 9
+        UserPanel.Anchor = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Right
         ' 
         ' Label7
         ' 
@@ -216,23 +218,25 @@ Partial Class Main
         ' ButtonPanel
         ' 
         ButtonPanel.BackColor = Color.Gainsboro
+        ButtonPanel.Controls.Add(UserPanel)
         ButtonPanel.Controls.Add(MainPanel)
         ButtonPanel.Controls.Add(Panel5)
-        ButtonPanel.Controls.Add(UserPanel)
+        ButtonPanel.Dock = DockStyle.Fill
         ButtonPanel.Location = New Point(119, 12)
         ButtonPanel.Name = "ButtonPanel"
         ButtonPanel.Size = New Size(1793, 1034)
         ButtonPanel.TabIndex = 10
+        ButtonPanel.Anchor = AnchorStyles.Top Or AnchorStyles.Bottom Or AnchorStyles.Left Or AnchorStyles.Right
         ' 
         ' MainPanel
         ' 
-        MainPanel.Location = New Point(3, 101)
+        MainPanel.Dock = DockStyle.Fill
+        MainPanel.Location = New Point(0, 101)
         MainPanel.Name = "MainPanel"
-        MainPanel.Size = New Size(20, 703)
+        MainPanel.Size = New Size(1793, 933)
         MainPanel.TabIndex = 10
         MainPanel.Visible = False
-        MainPanel.Dock = DockStyle.Fill
-
+        MainPanel.Anchor = AnchorStyles.Top Or AnchorStyles.Bottom Or AnchorStyles.Left Or AnchorStyles.Right
         ' 
         ' Panel5
         ' 
@@ -241,10 +245,12 @@ Partial Class Main
         Panel5.Controls.Add(PanelQuantityStock)
         Panel5.Controls.Add(PanelTotalSales)
         Panel5.Controls.Add(PanelTotalProduct)
-        Panel5.Location = New Point(29, 101)
+        Panel5.Dock = DockStyle.Fill
+        Panel5.Location = New Point(0, 101)
         Panel5.Name = "Panel5"
-        Panel5.Size = New Size(1752, 925)
+        Panel5.Size = New Size(1793, 933)
         Panel5.TabIndex = 14
+        Panel5.Anchor = AnchorStyles.Top Or AnchorStyles.Bottom Or AnchorStyles.Left Or AnchorStyles.Right
         ' 
         ' Panel1
         ' 
