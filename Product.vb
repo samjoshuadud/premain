@@ -12,9 +12,12 @@ Public Class Product
 
     '======= FOR LOAD =========
     Private Sub Product_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        ' Setup the column index change handler
+        SetupColumnDisplayIndexChangedHandler()
+        
         ' Load categories and products
         LoadCategories()
-        LoadProducts()
+        LoadProducts() ' This will load products and add the Edit column
 
         ' Center the panel (assuming CenterPanel is a custom function)
         CenterPanel()
@@ -40,58 +43,52 @@ Public Class Product
         dgvProduct.DefaultCellStyle.SelectionBackColor = dgvProduct.BackgroundColor
         dgvProduct.DefaultCellStyle.SelectionForeColor = dgvProduct.ForeColor
 
-        ' If needed, add Delete column or additional custom columns
-        ' Uncomment and modify if needed
-        'AddDeleteColumn()
-
-        ' Check and debug the columns
-        For Each column As DataGridViewColumn In dgvProduct.Columns
-            Console.WriteLine(column.Name) ' This will print column names to the Output window in Visual Studio
-        Next
-
-        editColumn = New DataGridViewImageColumn()
-        editColumn.Name = "Edit"
-        editColumn.HeaderText = "Select / Edit"
-        editColumn.Width = 40
-
-        Try
-            ' Set the image for the Edit column, check for any exceptions
-            Dim imagePath As String = System.IO.Path.Combine(Application.StartupPath, "Resources\icons8-edit-34.png")
-            editColumn.Image = Image.FromFile(imagePath)
-        Catch ex As Exception
-            ' Display error if the image fails to load
-            MessageBox.Show("Error loading image: " & ex.Message)
-        End Try
-
-        ' Set the image layout
-        editColumn.ImageLayout = DataGridViewImageCellLayout.Zoom
-
-        ' Add the Edit column to the DataGridView
-        dgvProduct.Columns.Add(editColumn)
+        ' Force the Edit column to be the last column one more time after everything is loaded
+        Application.DoEvents()
+        EnsureEditColumnIsLast()
     End Sub
 
-
-
-    Private Sub AddDeleteColumn()
-        ' Optional: You can also add a Delete column if needed
-        Dim deleteColumn As New DataGridViewImageColumn()
-        deleteColumn.Name = "Delete"
-        deleteColumn.HeaderText = "Delete"
-        deleteColumn.Width = 40
-
-        Try
-            ' Set the image for the Delete column, check for any exceptions
-            deleteColumn.Image = Image.FromFile("C:\Users\Aspire 5\source\repos\oreo-main\Resources\icons8-delete-35.png")
-        Catch ex As Exception
-            ' Display error if the image fails to load
-            MessageBox.Show("Error loading image: " & ex.Message)
-        End Try
-
-        ' Set the image layout
-        deleteColumn.ImageLayout = DataGridViewImageCellLayout.Zoom
-
-        ' Add the Delete column to the DataGridView
-        dgvProduct.Columns.Add(deleteColumn)
+    ' Helper method to ensure Edit column is the last column
+    Private Sub EnsureEditColumnIsLast()
+        ' Check if Edit column exists
+        If dgvProduct.Columns.Contains("Edit") Then
+            ' Log the current status of all columns (to debug ordering issues)
+            DebugColumnOrder("Before reordering")
+            
+            ' Get index of the last visible column (to avoid invisible columns issue)
+            Dim lastVisibleIndex As Integer = 0
+            For i As Integer = 0 To dgvProduct.Columns.Count - 1
+                If i <> dgvProduct.Columns("Edit").Index AndAlso dgvProduct.Columns(i).Visible Then
+                    lastVisibleIndex = Math.Max(lastVisibleIndex, dgvProduct.Columns(i).DisplayIndex)
+                End If
+            Next
+            
+            ' Set the DisplayIndex to be one higher than the highest other column
+            dgvProduct.Columns("Edit").DisplayIndex = lastVisibleIndex + 1
+            
+            ' Additional check to make visible
+            dgvProduct.Columns("Edit").Visible = True
+            
+            ' Force layout update
+            dgvProduct.PerformLayout()
+            dgvProduct.Refresh()
+            
+            ' Log the result after reordering
+            DebugColumnOrder("After reordering")
+        End If
+    End Sub
+    
+    ' Debug helper to print column order to console
+    Private Sub DebugColumnOrder(message As String)
+        Dim columnInfo As String = $"{message}:{Environment.NewLine}"
+        For i As Integer = 0 To dgvProduct.Columns.Count - 1
+            Dim col = dgvProduct.Columns(i)
+            columnInfo &= $"Column {i}: Name={col.Name}, DisplayIndex={col.DisplayIndex}, Visible={col.Visible}{Environment.NewLine}"
+        Next
+        Debug.WriteLine(columnInfo)
+        
+        ' Also write to a message box during debugging (can be removed in production)
+        ' MessageBox.Show(columnInfo, "Column Debug")
     End Sub
 
     '========== Load Products to DataGridView =========== 
@@ -99,8 +96,11 @@ Public Class Product
         Using connection As New SqlConnection(connectionString)
             connection.Open()
 
-            ' SQL query to fetch products with category name (excluding supplier)
-            Dim query As String = "SELECT p.ProductID, p.ProductName, c.CategoryName, p.Expiration, p.Image FROM Products p INNER JOIN Categories c ON p.CategoryID = c.CategoryID"
+            ' Updated query to join Inventory table
+            Dim query As String = "SELECT p.ProductID, p.ProductName, c.CategoryName, i.Barcode, i.UnitPrice, p.Expiration, p.Image " &
+                              "FROM Products p " &
+                              "INNER JOIN Categories c ON p.CategoryID = c.CategoryID " &
+                              "LEFT JOIN Inventory i ON p.ProductID = i.ProductID"
             Dim command As New SqlCommand(query, connection)
 
             ' Execute the query and load data into the DataGridView
@@ -108,11 +108,27 @@ Public Class Product
 
             Dim dt As New DataTable()
             dt.Load(reader)
+
+            ' Replace empty or null Barcode values with "No Barcode Yet"
+            For Each row As DataRow In dt.Rows
+                If IsDBNull(row("Barcode")) OrElse String.IsNullOrWhiteSpace(row("Barcode").ToString()) Then
+                    row("Barcode") = "No Barcode Yet"
+                End If
+            Next
+            
+            ' Remove any existing Edit columns before setting data source
+            For i As Integer = dgvProduct.Columns.Count - 1 To 0 Step -1
+                If dgvProduct.Columns(i).Name = "Edit" Then
+                    dgvProduct.Columns.RemoveAt(i)
+                End If
+            Next
+            
+            ' Set the DataSource
             dgvProduct.DataSource = dt
 
-            ' Hide the ProductID column (first column, index 0)
-            If dgvProduct.Columns.Count > 0 Then
-                dgvProduct.Columns(0).Visible = False
+            ' Hide the ProductID column
+            If dgvProduct.Columns.Contains("ProductID") Then
+                dgvProduct.Columns("ProductID").Visible = False
             End If
 
             ' Hide the Image column
@@ -120,23 +136,45 @@ Public Class Product
                 dgvProduct.Columns("Image").Visible = False
             End If
 
+            ' Hide the UnitPrice column
+            If dgvProduct.Columns.Contains("UnitPrice") Then
+                dgvProduct.Columns("UnitPrice").Visible = False
+            End If
 
+            ' Wait for all columns to be created and visible settings applied
+            Application.DoEvents()
+            
+            ' Add the Edit column (always after setting DataSource)
+            AddSelectEditColumn()
+            
+            ' Move the Barcode column to the first position LAST (important ordering)
+            ' This must happen AFTER adding the Edit column to prevent ordering issues
+            If dgvProduct.Columns.Contains("Barcode") Then
+                dgvProduct.Columns("Barcode").DisplayIndex = 0
+                dgvProduct.PerformLayout()
+            End If
+            
+            ' Set column widths and auto-size mode
             If dgvProduct.Columns.Contains("ProductName") Then
-                dgvProduct.Columns("ProductName").Width = 400  ' Set width to 400 for ProductName
+                dgvProduct.Columns("ProductName").Width = 400
                 dgvProduct.Columns("ProductName").AutoSizeMode = DataGridViewAutoSizeColumnMode.None
             End If
 
-            ' Set AutoSizeMode to Fill for remaining columns to avoid extra space at the end
-            For Each column As DataGridViewColumn In dgvProduct.Columns
-                If column.Name <> "Barcode" And column.Name <> "ProductName" Then
-                    column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
-                End If
-            Next
-
             ' Prevent the extra row from showing
             dgvProduct.AllowUserToAddRows = False
-
+            
+            ' Final check to ensure Edit column is at the end (after all other column adjustments)
+            EnsureEditColumnIsLast()
+            
+            ' Freeze the grid briefly then refresh to stabilize layout
+            dgvProduct.Enabled = False
+            Application.DoEvents()
+            dgvProduct.Enabled = True
         End Using
+
+        ' Force a refresh of the grid
+        Application.DoEvents() ' Flush pending events
+        dgvProduct.Refresh()
     End Sub
 
     '========== Load Categories in ComboBox =========== 
@@ -230,18 +268,6 @@ Public Class Product
             MessageBox.Show("Please enter the product name.", "Missing Information", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             txtProductName.Focus()
             Exit Sub
-        ElseIf System.Text.RegularExpressions.Regex.IsMatch(txtProductName.Text, "[0-9]") Then
-            MessageBox.Show("Product name must not contain numbers.", "Invalid Product Name", MessageBoxButtons.OK, MessageBoxIcon.Warning)
-            txtProductName.Focus()
-            Exit Sub
-        ElseIf String.IsNullOrWhiteSpace(txtBarcode.Text) Then
-            MessageBox.Show("Please enter the barcode.", "Missing Information", MessageBoxButtons.OK, MessageBoxIcon.Warning)
-            txtBarcode.Focus()
-            Exit Sub
-        ElseIf Not System.Text.RegularExpressions.Regex.IsMatch(txtBarcode.Text, "^[\d\-,.]+$") Then
-            MessageBox.Show("Barcode must contain only numbers, commas, periods, or dashes.", "Invalid Barcode", MessageBoxButtons.OK, MessageBoxIcon.Warning)
-            txtBarcode.Focus()
-            Exit Sub
         ElseIf cboCategory.SelectedIndex = -1 Then
             MessageBox.Show("Please select a category.", "Missing Information", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             cboCategory.Focus()
@@ -249,74 +275,55 @@ Public Class Product
         End If
 
         Try
-            ' Check if the barcode already exists
-            Using connection As New SqlConnection(connectionString)
-                connection.Open()
-
-                Dim checkBarcodeQuery As String = "SELECT COUNT(*) FROM Products WHERE Barcode = @Barcode"
-                Dim checkBarcodeCmd As New SqlCommand(checkBarcodeQuery, connection)
-                checkBarcodeCmd.Parameters.AddWithValue("@Barcode", txtBarcode.Text)
-
-                Dim existingCount As Integer = Convert.ToInt32(checkBarcodeCmd.ExecuteScalar())
-
-                If existingCount > 0 Then
-                    MessageBox.Show("The barcode already exists. Please enter a unique barcode.", "Duplicate Barcode", MessageBoxButtons.OK, MessageBoxIcon.Warning)
-                    txtBarcode.Focus()
-                    Exit Sub
-                End If
-            End Using
-
-            ' Prepare product data
-            Dim productName As String = txtProductName.Text
-            Dim barcode As String = txtBarcode.Text
-            Dim categoryId As Integer = Convert.ToInt32(cboCategory.SelectedValue)
-            Dim expiration As String = If(chkExpirationOption.Checked, "With Expiration", "Without Expiration")
-            Dim productImage As Byte() = Nothing
-
-            ' Handle image
+            ' Convert the image to a byte array
+            Dim imageBytes As Byte() = Nothing
             If picProductImage.Image IsNot Nothing Then
                 Using ms As New MemoryStream()
                     picProductImage.Image.Save(ms, picProductImage.Image.RawFormat)
-                    productImage = ms.ToArray()
+                    imageBytes = ms.ToArray()
                 End Using
-            Else
-                Dim imagePath As String = Path.Combine(Application.StartupPath, "Resources\noimage (1).jpeg")
-                If File.Exists(imagePath) Then
-                    productImage = File.ReadAllBytes(imagePath)
-                Else
-                    MessageBox.Show("Default image not found.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
-                    Exit Sub
-                End If
             End If
 
-            ' Insert product into database
+            ' Insert product into Products table
+            Dim productId As Integer
             Using connection As New SqlConnection(connectionString)
                 connection.Open()
 
-                Dim command As New SqlCommand("INSERT INTO Products (Barcode, ProductName, CategoryID, Expiration, Image) VALUES (@Barcode, @ProductName, @CategoryID, @Expiration, @Image)", connection)
-                command.Parameters.AddWithValue("@Barcode", barcode)
-                command.Parameters.AddWithValue("@ProductName", productName)
-                command.Parameters.AddWithValue("@CategoryID", categoryId)
-                command.Parameters.AddWithValue("@Expiration", expiration)
-                command.Parameters.AddWithValue("@Image", If(productImage IsNot Nothing, productImage, DBNull.Value))
+                Dim command As New SqlCommand("INSERT INTO Products (ProductName, CategoryID, Expiration, Image) OUTPUT INSERTED.ProductID VALUES (@ProductName, @CategoryID, @Expiration, @Image)", connection)
+                command.Parameters.AddWithValue("@ProductName", txtProductName.Text)
+                command.Parameters.AddWithValue("@CategoryID", Convert.ToInt32(cboCategory.SelectedValue))
+                command.Parameters.AddWithValue("@Expiration", If(chkExpirationOption.Checked, "With Expiration", "Without Expiration"))
+                command.Parameters.AddWithValue("@Image", If(imageBytes IsNot Nothing, CType(imageBytes, Object), DBNull.Value))
 
-                command.ExecuteNonQuery()
-
-                ' Log to audit trail
-                Dim actionDescription As String = $"Added A New Product: {productName}"
-                Logaudittrail(SessionData.role, SessionData.fullName, actionDescription)
-
-                ' Reset and reload
-                ResetForm()
-                MessageBox.Show("Product has been successfully added!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information)
-                LoadProducts()
+                productId = Convert.ToInt32(command.ExecuteScalar())
             End Using
+
+            ' Insert barcode and unit price into Inventory table
+            Using connection As New SqlConnection(connectionString)
+                connection.Open()
+
+                Dim command As New SqlCommand("INSERT INTO Inventory (ProductID, QuantityInStock) VALUES (@ProductID, @QuantityInStock)", connection)
+                command.Parameters.AddWithValue("@ProductID", productId)
+                command.Parameters.AddWithValue("@QuantityInStock", 0) ' Set a default value, e.g., 0
+                command.ExecuteNonQuery()
+            End Using
+
+            MessageBox.Show("Product has been successfully added!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information)
+
+            ' Reset form and hide panel
+            ResetForm()
+            PanelProduct.Visible = False
+            
+            ' Reload products
+            LoadProducts()
+            
+            ' Additional check to ensure Edit column is last
+            EnsureEditColumnIsLast()
 
         Catch ex As Exception
             MessageBox.Show("An error occurred while adding the product: " & ex.Message, "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
-
 
     '========== Edit Product Button - Update Product in Database =========== 
     Private Sub btnEdit_Click(sender As Object, e As EventArgs) Handles btnEdit.Click
@@ -326,9 +333,8 @@ Public Class Product
             Return
         End If
 
-
         ' Step 1: Retrieve original product values from the database
-        Dim originalQuery As String = "SELECT ProductName, Barcode, CategoryID, Expiration FROM Products WHERE ProductID = @ProductID"
+        Dim originalQuery As String = "SELECT ProductName, CategoryID, Expiration FROM Products WHERE ProductID = @ProductID"
         Dim originalProduct As New Dictionary(Of String, String)
         Try
             Using connection As New SqlConnection(connectionString)
@@ -338,7 +344,6 @@ Public Class Product
                 Using reader As SqlDataReader = command.ExecuteReader()
                     If reader.Read() Then
                         originalProduct("ProductName") = reader("ProductName").ToString()
-                        originalProduct("Barcode") = reader("Barcode").ToString()
                         originalProduct("CategoryID") = reader("CategoryID").ToString()
                         originalProduct("Expiration") = reader("Expiration").ToString()
                     End If
@@ -350,65 +355,70 @@ Public Class Product
         End Try
 
         ' Step 2: Get new values from the form
+        Dim productName As String = If(txtProductName?.Text, String.Empty)
+        Dim categoryID As String = If(cboCategory?.SelectedValue?.ToString(), String.Empty)
+        Dim expiration As String = If(chkExpirationOption?.Checked, "With Expiration", "Without Expiration")
+
         Dim updatedProduct As New Dictionary(Of String, String) From {
-    {"ProductName", txtProductName.Text},
-    {"Barcode", txtBarcode.Text},
-    {"CategoryID", cboCategory.SelectedValue.ToString()},
-    {"Expiration", If(chkExpirationOption.Checked, "With Expiration", "Without Expiration")}
-}
+       {"ProductName", productName},
+       {"CategoryID", categoryID},
+       {"Expiration", expiration}
+   }
 
-        ' Step 3: Generate the change log (simplified)
-        Dim changes As String = "Edited the product: " & updatedProduct("ProductName") & vbCrLf
-        For Each key In originalProduct.Keys
-            If originalProduct(key) <> updatedProduct(key) Then
-                ' Log changes based on Category using ComboBox's selected text
-                If key = "CategoryID" Then
-                    ' Assuming cboCategory.Text gives the category name (not the ID)
-                    Dim updatedCategoryName As String = cboCategory.Text
-                    Dim originalCategoryName As String = GetCategoryNameByID(originalProduct("CategoryID"))
-                    changes &= $"Category changed from '{originalCategoryName}' to '{updatedCategoryName}'" & vbCrLf
-                Else
-                    changes &= $"{key} changed from '{originalProduct(key)}' to '{updatedProduct(key)}'" & vbCrLf
-                End If
+        If String.IsNullOrWhiteSpace(productName) Then
+            MessageBox.Show("Product name cannot be empty.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Return
+        End If
+
+        If String.IsNullOrWhiteSpace(categoryID) Then
+            MessageBox.Show("Please select a valid category.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Return
+        End If
+
+        ' Step 3: Check for duplicate product names
+        Dim checkQuery As String = "SELECT COUNT(*) FROM Products WHERE ProductName = @ProductName AND ProductID <> @ProductID"
+        Using connection As New SqlConnection(connectionString)
+            connection.Open()
+            Dim checkCommand As New SqlCommand(checkQuery, connection)
+            checkCommand.Parameters.AddWithValue("@ProductName", updatedProduct("ProductName"))
+            checkCommand.Parameters.AddWithValue("@ProductID", selectedProductID)
+            Dim count As Integer = Convert.ToInt32(checkCommand.ExecuteScalar())
+
+            If count > 0 Then
+                MessageBox.Show("The product name already exists. Please choose a different name.", "Duplicate Product", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                Return
             End If
-        Next
+        End Using
 
-        ' If there are changes, log the audit trail
-        If changes.Length > 0 Then
-            Logaudittrail(SessionData.role, SessionData.fullName, changes)
-        End If
+        ' Step 4: Proceed with the update
+        Try
+            Dim updateQuery As String = "UPDATE Products SET ProductName = @ProductName, CategoryID = @CategoryID, Expiration = @Expiration" & If(productImage IsNot Nothing, ", Image = @Image", "") & " WHERE ProductID = @ProductID"
+            Using connection As New SqlConnection(connectionString)
+                connection.Open()
+                Dim command As New SqlCommand(updateQuery, connection)
+                command.Parameters.AddWithValue("@ProductID", selectedProductID)
+                command.Parameters.AddWithValue("@ProductName", updatedProduct("ProductName"))
+                command.Parameters.AddWithValue("@CategoryID", updatedProduct("CategoryID"))
+                command.Parameters.AddWithValue("@Expiration", updatedProduct("Expiration"))
 
-        ' Step 4: Proceed with the update logic if there are any changes
-        If changes.Length > 0 Then
-            Try
-                ' Rename the query to avoid conflict
-                Dim updateQuery As String = "UPDATE Products SET Barcode = @Barcode, ProductName = @ProductName = CategoryID = @CategoryID, Expiration = @Expiration" & If(productImage IsNot Nothing, ", Image = @Image", "") & " WHERE ProductID = @ProductID"
-                Using connection As New SqlConnection(connectionString)
-                    connection.Open()
+                If productImage IsNot Nothing Then
+                    command.Parameters.AddWithValue("@Image", productImage)
+                End If
 
-                    ' SQL Query to update product details (including image if changed)
-                    Dim command As New SqlCommand(updateQuery, connection)
-                    command.Parameters.AddWithValue("@ProductID", selectedProductID)
-                    command.Parameters.AddWithValue("@Barcode", updatedProduct("Barcode"))
-                    command.Parameters.AddWithValue("@ProductName", updatedProduct("ProductName"))
-                    command.Parameters.AddWithValue("@CategoryID", updatedProduct("CategoryID"))
-                    command.Parameters.AddWithValue("@Expiration", updatedProduct("Expiration"))
+                command.ExecuteNonQuery()
 
-                    If productImage IsNot Nothing Then
-                        command.Parameters.AddWithValue("@Image", productImage)
-                    End If
-
-                    command.ExecuteNonQuery()
-
-                    ' Reset form, reload products, and notify user
-                    ResetForm()
-                    MessageBox.Show("Product details have been successfully updated!", "Update Successful", MessageBoxButtons.OK, MessageBoxIcon.Information)
-                    LoadProducts()
-                End Using
-            Catch ex As Exception
-                MessageBox.Show("The product already exists. Please check the product details.", "Update Failed", MessageBoxButtons.OK, MessageBoxIcon.Error)
-            End Try
-        End If
+                ' Reset form, reload products, and notify user
+                ResetForm()
+                MessageBox.Show("Product details have been successfully updated!", "Update Successful", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                LoadProducts()
+                PanelProduct.Visible = False
+            End Using
+            
+            ' After successful update and reloading products
+            EnsureEditColumnIsLast() ' Make sure Edit column stays at the end
+        Catch ex As Exception
+            MessageBox.Show("An error occurred while updating the product: " & ex.Message, "Update Failed", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
     End Sub
 
     ' Function to get Category name by ID
@@ -437,19 +447,6 @@ Public Class Product
 
     '========== Delete Product Button - Delete Product from Database =========== 
     Private Sub btnDelete_Click(sender As Object, e As EventArgs) Handles btnDelete.Click
-        ' Get the current user role
-        Dim userRole As String = GetCurrentUserRole()
-
-        ' Debug: Show the actual role value
-        MessageBox.Show("Current role: " & userRole, "Debug Info")
-
-        ' Check if the user is Staff - don't allow deletion for Staff role
-        If userRole.ToUpper().Contains("STAFF") Then
-            MessageBox.Show("Staff members are not authorized to delete products.",
-                           "Permission Denied", MessageBoxButtons.OK, MessageBoxIcon.Warning)
-            Return
-        End If
-
         If selectedProductID = -1 Then
             MessageBox.Show("Please select a product to delete.", "No Selection", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             Return
@@ -459,16 +456,6 @@ Public Class Product
 
         If confirmResult = DialogResult.Yes Then
             Try
-                ' Get the current user's details (Assuming SessionData holds user details)
-                Dim userFullName As String = SessionData.fullName ' Logged-in user full name
-
-                ' Fetch the product details (for audit purposes)
-                Dim productToDelete As DataRow = GetProductDetailsById(selectedProductID)
-                Dim actionDescription As String = $"Deleted Product: {productToDelete("ProductName")} (Barcode: {productToDelete("Barcode")})"
-
-                ' Log the audit trail
-                Logaudittrail(userRole, userFullName, actionDescription)
-
                 ' Proceed with deleting the product
                 Using connection As New SqlConnection(connectionString)
                     connection.Open()
@@ -478,13 +465,66 @@ Public Class Product
                 End Using
 
                 MessageBox.Show("Product has been successfully deleted.", "Delete Successful", MessageBoxButtons.OK, MessageBoxIcon.Information)
-                LoadProducts() ' Refresh product list
-                ResetForm() ' Reset the form
+
+                ' Reset form and selected product ID
+                ResetForm()
+                selectedProductID = -1
+                PanelProduct.Visible = False
+
+                ' Reload products (this will re-add the Edit column)
+                LoadProducts()
+                
+                ' After reloading products
+                EnsureEditColumnIsLast() ' Make sure Edit column stays at the end
+
             Catch ex As Exception
                 MessageBox.Show("An error occurred while deleting the product: " & ex.Message, "Delete Failed", MessageBoxButtons.OK, MessageBoxIcon.Error)
             End Try
         End If
-        btnAdd.Enabled = True ' Re-enable the Add button
+    End Sub
+
+    Private Sub AddSelectEditColumn()
+        ' First, check and remove any existing Edit columns to prevent duplicates
+        For i As Integer = dgvProduct.Columns.Count - 1 To 0 Step -1
+            If dgvProduct.Columns(i).Name = "Edit" Then
+                dgvProduct.Columns.RemoveAt(i)
+            End If
+        Next
+
+        ' Now add a new Edit column
+        Dim editColumn As New DataGridViewImageColumn()
+        editColumn.Name = "Edit"
+        editColumn.HeaderText = "Select / Edit"
+        editColumn.Width = 40
+
+        Try
+            ' Set the image for the Edit column
+            Dim imagePath As String = System.IO.Path.Combine(Application.StartupPath, "Resources\icons8-edit-34.png")
+            If File.Exists(imagePath) Then
+                editColumn.Image = Image.FromFile(imagePath)
+                ' Set the image layout
+                editColumn.ImageLayout = DataGridViewImageCellLayout.Zoom
+            Else
+                ' If image doesn't exist, use text instead
+                Dim textCol As New DataGridViewButtonColumn()
+                textCol.Name = "Edit"
+                textCol.HeaderText = "Select / Edit"
+                textCol.Text = "Edit"
+                textCol.UseColumnTextForButtonValue = True
+                dgvProduct.Columns.Add(textCol)
+                textCol.DisplayIndex = dgvProduct.Columns.Count - 1
+                Return
+            End If
+        Catch ex As Exception
+            ' Display error if the image fails to load
+            MessageBox.Show("Error loading image: " & ex.Message)
+        End Try
+
+        ' Add the column to the DataGridView
+        dgvProduct.Columns.Add(editColumn)
+        
+        ' Apply column order immediately
+        dgvProduct.PerformLayout()
     End Sub
 
     Private Sub btnReset_Click(sender As Object, e As EventArgs) Handles btnReset.Click
@@ -496,8 +536,7 @@ Public Class Product
         Dim productDetails As New DataTable()
 
         ' SQL query to fetch the product details based on ProductID
-        Dim query As String = "SELECT ProductName, Barcode, RetailPrice FROM Products WHERE ProductID = @ProductID"
-
+        Dim query As String = "SELECT ProductName FROM Products WHERE ProductID = @ProductID"
         Try
             ' Create the SQL connection
             Using connection As New SqlConnection(connectionString)
@@ -533,33 +572,21 @@ Public Class Product
 
     '==================FOR DGV =================
     Private Sub dgvProduct_CellClick(sender As Object, e As DataGridViewCellEventArgs) Handles dgvProduct.CellClick
-        ' Ensure the clicked row is valid
         If e.RowIndex >= 0 Then
-            ' Get the selected row data
             Dim row As DataGridViewRow = dgvProduct.Rows(e.RowIndex)
 
             ' Pre-fill the form fields with the values from the selected row
             txtProductName.Text = row.Cells("ProductName").Value.ToString()
-            txtBarcode.Text = row.Cells("Barcode").Value.ToString()
 
-            ' Fetch unit price and retail price directly from the database
+            ' Fetch UnitPrice from the Inventory table
             Using connection As New SqlConnection(connectionString)
                 connection.Open()
-                Dim query As String = "SELECT UnitPrice, RetailPrice FROM Products WHERE ProductID = @ProductID"
+                Dim query As String = "SELECT UnitPrice FROM Inventory WHERE ProductID = @ProductID"
                 Dim command As New SqlCommand(query, connection)
                 command.Parameters.AddWithValue("@ProductID", Convert.ToInt32(row.Cells("ProductID").Value))
+                Dim unitPrice As Object = command.ExecuteScalar()
+
             End Using
-
-            ' Get the CategoryName from the selected row and find the corresponding CategoryID
-            Dim categoryName As String = row.Cells("CategoryName").Value.ToString()
-
-            ' Loop through the ComboBox items to find the matching CategoryName
-            For Each item As DataRowView In cboCategory.Items
-                If item("CategoryName").ToString() = categoryName Then
-                    cboCategory.SelectedItem = item
-                    Exit For
-                End If
-            Next
 
             ' Handle expiration option
             If row.Cells("Expiration").Value.ToString() = "With Expiration" Then
@@ -575,16 +602,14 @@ Public Class Product
                     picProductImage.Image = Image.FromStream(ms)
                 End Using
             Else
-                ' Set a default image if no image is found
                 picProductImage.Image = Nothing
             End If
 
             PanelProduct.Visible = True
-
-            ' Store the selected ProductID for future update
             selectedProductID = Convert.ToInt32(row.Cells("ProductID").Value)
         End If
     End Sub
+
     Private Sub SetupDataGridView()
         ' Set DataGridView properties for better appearance
         dgvProduct.BackgroundColor = Color.White
@@ -664,7 +689,6 @@ Public Class Product
     Private Sub ResetForm()
         ' Clear form fields
         txtProductName.Clear()
-        txtBarcode.Clear()
 
         cboCategory.SelectedIndex = -1
         chkExpirationOption.Checked = False
@@ -769,13 +793,12 @@ Public Class Product
                 PanelProduct.Visible = True
 
                 ' Fill the textboxes with selected row values
-                txtBarcode.Text = selectedRow.Cells("Barcode").Value.ToString()
                 txtProductName.Text = selectedRow.Cells("ProductName").Value.ToString()
 
                 ' Fetch unit price and retail price directly from database
                 Using connection As New SqlConnection(connectionString)
                     connection.Open()
-                    Dim query As String = "SELECT UnitPrice, RetailPrice FROM Products WHERE ProductID = @ProductID"
+                    Dim query As String = "SELECT UnitPrice FROM Inventory WHERE ProductID = @ProductID"
                     Dim command As New SqlCommand(query, connection)
                     command.Parameters.AddWithValue("@ProductID", Convert.ToInt32(selectedRow.Cells("ProductID").Value))
 
@@ -844,25 +867,39 @@ Public Class Product
         ' Check if the user is Staff
         If userRole.ToUpper().Contains("STAFF") Then
             MessageBox.Show("Staff members are not authorized to delete products.",
-                            "Permission Denied", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                        "Permission Denied", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             Return
         End If
 
-        ' Create the DELETE SQL command
-        Dim query As String = "DELETE FROM Products WHERE ProductID = @ProductID"
-
-        ' Use a database connection to execute the command
+        ' Use a database connection to execute the commands
         Using conn As New SqlConnection(connectionString)
-            Using cmd As New SqlCommand(query, conn)
-                ' Add the ProductID parameter
-                cmd.Parameters.AddWithValue("@ProductID", productID)
+            conn.Open()
 
+            ' Start a transaction to ensure both deletions succeed or fail together
+            Using transaction As SqlTransaction = conn.BeginTransaction()
                 Try
-                    conn.Open()
-                    cmd.ExecuteNonQuery() ' Execute the DELETE command
-                    MessageBox.Show("Product deleted successfully.", "Success")
+                    ' Delete associated rows from the Inventory table
+                    Dim deleteInventoryQuery As String = "DELETE FROM Inventory WHERE ProductID = @ProductID"
+                    Using deleteInventoryCmd As New SqlCommand(deleteInventoryQuery, conn, transaction)
+                        deleteInventoryCmd.Parameters.AddWithValue("@ProductID", productID)
+                        deleteInventoryCmd.ExecuteNonQuery()
+                    End Using
+
+                    ' Delete the product from the Products table
+                    Dim deleteProductQuery As String = "DELETE FROM Products WHERE ProductID = @ProductID"
+                    Using deleteProductCmd As New SqlCommand(deleteProductQuery, conn, transaction)
+                        deleteProductCmd.Parameters.AddWithValue("@ProductID", productID)
+                        deleteProductCmd.ExecuteNonQuery()
+                    End Using
+
+                    ' Commit the transaction
+                    transaction.Commit()
+
+                    MessageBox.Show("Product and associated inventory have been successfully deleted.", "Success")
                 Catch ex As Exception
-                    MessageBox.Show("Error deleting product: " & ex.Message, "Error")
+                    ' Rollback the transaction in case of an error
+                    transaction.Rollback()
+                    MessageBox.Show("Error deleting product and associated inventory: " & ex.Message, "Error")
                 End Try
             End Using
         End Using
@@ -875,24 +912,23 @@ Public Class Product
     End Sub
 
     Private Sub LoadProductData(searchTerm As String)
-        ' Only perform the query if there is a search term entered
-        If String.IsNullOrWhiteSpace(searchTerm) Then
-            dgvProduct.DataSource = Nothing ' Optionally clear the grid if you want to remove data when search term is empty
-            Return
-        End If
+        ' Remove any existing Edit columns before changing data source
+        For i As Integer = dgvProduct.Columns.Count - 1 To 0 Step -1
+            If dgvProduct.Columns(i).Name = "Edit" Then
+                dgvProduct.Columns.RemoveAt(i)
+            End If
+        Next
+        
+        Dim query As String = "SELECT p.ProductID, p.ProductName, c.CategoryName, i.Barcode, i.UnitPrice, p.Expiration, p.Image " &
+                          "FROM Products p " &
+                          "INNER JOIN Categories c ON p.CategoryID = c.CategoryID " &
+                          "LEFT JOIN Inventory i ON p.ProductID = i.ProductID " &
+                          "WHERE p.ProductName LIKE @search OR c.CategoryName LIKE @search OR i.Barcode LIKE @search"
 
-        ' SQL query to search products based on Barcode, ProductName, or CategoryID
-        Dim query As String = "SELECT Barcode, ProductName, UnitPrice, RetailPrice, CategoryID, Expiration " &
-                              "FROM Products " &
-                              "WHERE Barcode LIKE @search OR ProductName LIKE @search OR CategoryID LIKE @search"
-
-        ' Set up the database connection and execute the query
         Using conn As New SqlConnection(connectionString)
             Using cmd As New SqlCommand(query, conn)
-                ' Add the parameter to the query with the search term (includes wildcards for partial matching)
                 cmd.Parameters.AddWithValue("@search", "%" & searchTerm & "%")
 
-                ' Create a DataAdapter and DataTable to hold the result
                 Dim adapter As New SqlDataAdapter(cmd)
                 Dim table As New DataTable()
 
@@ -900,8 +936,29 @@ Public Class Product
                     conn.Open()
                     ' Fill the table with data
                     adapter.Fill(table)
+                    
                     ' Bind the results to the DataGridView
                     dgvProduct.DataSource = table
+                    
+                    ' Hide any columns we don't want to show
+                    If dgvProduct.Columns.Contains("ProductID") Then
+                        dgvProduct.Columns("ProductID").Visible = False
+                    End If
+                    
+                    If dgvProduct.Columns.Contains("UnitPrice") Then
+                        dgvProduct.Columns("UnitPrice").Visible = False
+                    End If
+                    
+                    If dgvProduct.Columns.Contains("Image") Then
+                        dgvProduct.Columns("Image").Visible = False
+                    End If
+                    
+                    ' Always add the Edit column after setting DataSource
+                    AddSelectEditColumn()
+                    
+                    ' Ensure Edit column is at the end
+                    EnsureEditColumnIsLast()
+                    
                 Catch ex As Exception
                     ' Handle the error (displaying it in a message box here)
                     MessageBox.Show("Database Error: " & ex.Message)
@@ -949,5 +1006,29 @@ Public Class Product
 
         Return defaultRole
     End Function
+
+    ' Alternative approach: Add a handler for column display index changed events
+    Private Sub SetupColumnDisplayIndexChangedHandler()
+        ' Subscribe to the ColumnDisplayIndexChanged event
+        AddHandler dgvProduct.ColumnDisplayIndexChanged, AddressOf dgvProduct_ColumnDisplayIndexChanged
+    End Sub
+
+    Private Sub dgvProduct_ColumnDisplayIndexChanged(sender As Object, e As DataGridViewColumnEventArgs)
+        ' When any column's display index changes, ensure Edit column is last
+        ' This happens only after form is fully loaded
+        If dgvProduct.IsHandleCreated AndAlso Not dgvProduct.Disposing AndAlso Not dgvProduct.IsDisposed Then
+            If e.Column.Name <> "Edit" AndAlso dgvProduct.Columns.Contains("Edit") Then
+                ' Use BeginInvoke to avoid recursive event triggering
+                dgvProduct.BeginInvoke(Sub()
+                                          ' Only reposition if Edit isn't already last
+                                          Dim editCol = dgvProduct.Columns("Edit")
+                                          If editCol.DisplayIndex <> dgvProduct.Columns.Count - 1 Then
+                                              ' Set Edit column to be last
+                                              editCol.DisplayIndex = dgvProduct.Columns.Count - 1
+                                          End If
+                                      End Sub)
+            End If
+        End If
+    End Sub
 End Class
 

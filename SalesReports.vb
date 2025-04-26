@@ -66,12 +66,14 @@ Public Class SalesReports
                 connection.Open()
             End If
 
-            ' SQL query to fetch sales data
-            Dim query As String = "SELECT SaleDate, TransactionNumber, COALESCE(TotalAmount, 0) AS TotalAmount, " &
-                                  "COALESCE(DiscountAmount, 0) AS DiscountAmount, COALESCE(VatAmount, 0) AS VatAmount, " &
-                                  "COALESCE(NetAmount, 0) AS NetAmount " &
-                                  "FROM Sales " &
-                                  "WHERE SaleDate BETWEEN @StartDate AND @EndDate"
+            ' SQL query to fetch sales data, including the invoice column
+            Dim query As String = "SELECT SaleDate, TransactionNumber, Invoice AS [Sales Invoice], " &
+                              "COALESCE(TotalAmount, 0) AS TotalAmount, " &
+                              "COALESCE(DiscountAmount, 0) AS DiscountAmount, " &
+                              "COALESCE(VatAmount, 0) AS VatAmount, " &
+                              "COALESCE(NetAmount, 0) AS NetAmount " &
+                              "FROM Sales " &
+                              "WHERE SaleDate BETWEEN @StartDate AND @EndDate"
 
             ' Set up the SQL command with parameters
             Dim cmd As New SqlCommand(query, connection)
@@ -125,6 +127,7 @@ Public Class SalesReports
         If dgvSalesReport.Columns.Count > 0 Then
             dgvSalesReport.Columns("SaleDate").Width = 120
             dgvSalesReport.Columns("TransactionNumber").Width = 120
+            dgvSalesReport.Columns("Sales Invoice").Width = 150 ' Set width for the new Sales Invoice column
             dgvSalesReport.Columns("TotalAmount").Width = 120
             dgvSalesReport.Columns("DiscountAmount").Width = 120
             dgvSalesReport.Columns("VatAmount").Width = 120

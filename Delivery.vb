@@ -57,12 +57,18 @@ Public Class Delivery
 
     ' Form Load Event
     Private Sub Delivery_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        ' Load suppliers and products
         LoadSuppliers()
         LoadProducts()
 
-        ' Use txtReceivedBy instead of cmbUserFullName
-        txtReceivedBy.Text = SessionData.fullName
-        txtReceivedBy.ReadOnly = True  ' Make it read-only
+        ' Set the "Received By" field to the current user's full name
+        If Not String.IsNullOrEmpty(SessionData.fullName) Then
+            txtReceivedBy.Text = SessionData.fullName
+        Else
+            MessageBox.Show("Error: The current user's name is not set. Please ensure the user is logged in.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            txtReceivedBy.Text = "Unknown User" ' Fallback value
+        End If
+        txtReceivedBy.ReadOnly = True ' Make it read-only
 
         ' Set ComboBoxes to no selection
         cmbSupplierID.SelectedIndex = -1
@@ -90,11 +96,6 @@ Public Class Delivery
         Catch ex As ArgumentException
             MessageBox.Show("Error initializing date controls: " & ex.Message, "Date Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
-
-        MessageBox.Show("Delivery_Load: dtpExpirationDate.MinDate = " & dtpExpirationDate.MinDate.ToString() & vbCrLf &
-                    "dtpExpirationDate.Value = " & dtpExpirationDate.Value.ToString() & vbCrLf &
-                    "dtpDeliveryDate.MinDate = " & dtpDeliveryDate.MinDate.ToString() & vbCrLf &
-                    "dtpDeliveryDate.Value = " & dtpDeliveryDate.Value.ToString(), "Debug Info")
     End Sub
 
     Private Sub SetupDataGridView()

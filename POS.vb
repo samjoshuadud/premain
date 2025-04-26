@@ -646,22 +646,26 @@ Public Class POS
         Dim change As Decimal = amountPaid - finalAmount
         lblChange.Text = "₱ " & change.ToString("0.00")
 
+        ' Generate the invoice number
+        Dim invoiceNumber As String = "SI# " & DateTime.Now.ToString("yy-") & GetRandomNumber(10000000)
+
         ' Process the payment (insert sales data and update stock)
         Try
             dbHelper.BeginTransaction()
 
             ' Insert sale details into the Sales table
-            Dim saleQuery As String = "INSERT INTO Sales (TransactionNumber, SaleDate, CashierID, TotalAmount, DiscountAmount, VatAmount, NetAmount) " &
-                              "VALUES (@TransactionNumber, GETDATE(), @CashierID, @TotalAmount, @DiscountAmount, @VatAmount, @NetAmount); " &
-                              "SELECT SCOPE_IDENTITY();"
+            Dim saleQuery As String = "INSERT INTO Sales (TransactionNumber, SaleDate, CashierID, TotalAmount, DiscountAmount, VatAmount, NetAmount, Invoice) " &
+                                  "VALUES (@TransactionNumber, GETDATE(), @CashierID, @TotalAmount, @DiscountAmount, @VatAmount, @NetAmount, @Invoice); " &
+                                  "SELECT SCOPE_IDENTITY();"
             Dim saleParams As SqlParameter() = {
-                New SqlParameter("@TransactionNumber", transactionNumber),
-                New SqlParameter("@CashierID", SessionData.CurrentUserId),
-                New SqlParameter("@TotalAmount", originalSubtotal),
-                New SqlParameter("@DiscountAmount", discountAmount),
-                New SqlParameter("@VatAmount", vatAmount),
-                New SqlParameter("@NetAmount", originalSubtotal - discountAmount)
-            }
+            New SqlParameter("@TransactionNumber", transactionNumber),
+            New SqlParameter("@CashierID", SessionData.CurrentUserId),
+            New SqlParameter("@TotalAmount", originalSubtotal),
+            New SqlParameter("@DiscountAmount", discountAmount),
+            New SqlParameter("@VatAmount", vatAmount),
+            New SqlParameter("@NetAmount", originalSubtotal - discountAmount),
+            New SqlParameter("@Invoice", invoiceNumber) ' Save the invoice number
+        }
             Dim saleId As Integer = Convert.ToInt32(dbHelper.ExecuteScalar(saleQuery, saleParams))
 
             ' Process each item in the cart
@@ -675,43 +679,41 @@ Public Class POS
                 Dim itemQuery As String = "INSERT INTO SaleItems (SaleID, ProductID, Quantity, UnitPrice, TotalPrice) " &
                                       "VALUES (@SaleID, @ProductID, @Quantity, @UnitPrice, @TotalPrice)"
                 Dim itemParams As SqlParameter() = {
-                    New SqlParameter("@SaleID", saleId),
-                    New SqlParameter("@ProductID", productId),
-                    New SqlParameter("@Quantity", quantity),
-                    New SqlParameter("@UnitPrice", unitPrice),
-                    New SqlParameter("@TotalPrice", totalPrice)
-                }
+                New SqlParameter("@SaleID", saleId),
+                New SqlParameter("@ProductID", productId),
+                New SqlParameter("@Quantity", quantity),
+                New SqlParameter("@UnitPrice", unitPrice),
+                New SqlParameter("@TotalPrice", totalPrice)
+            }
                 dbHelper.ExecuteNonQuery(itemQuery, itemParams)
 
                 ' Insert into TodaySales table
                 Dim todaySalesQuery As String = "INSERT INTO TodaySales (TransactionNumber, ProductID, Quantity, UnitPrice, TotalPrice, Discount) " &
                                             "VALUES (@TransactionNumber, @ProductID, @Quantity, @UnitPrice, @TotalPrice, @Discount)"
                 Dim todaySalesParams As SqlParameter() = {
-                    New SqlParameter("@TransactionNumber", transactionNumber),
-                    New SqlParameter("@ProductID", productId),
-                    New SqlParameter("@Quantity", quantity),
-                    New SqlParameter("@UnitPrice", unitPrice),
-                    New SqlParameter("@TotalPrice", totalPrice),
-                    New SqlParameter("@Discount", discountAmount / cart.Rows.Count) ' Distribute discount evenly
-                }
+                New SqlParameter("@TransactionNumber", transactionNumber),
+                New SqlParameter("@ProductID", productId),
+                New SqlParameter("@Quantity", quantity),
+                New SqlParameter("@UnitPrice", unitPrice),
+                New SqlParameter("@TotalPrice", totalPrice),
+                New SqlParameter("@Discount", discountAmount / cart.Rows.Count) ' Distribute discount evenly
+            }
                 dbHelper.ExecuteNonQuery(todaySalesQuery, todaySalesParams)
 
                 ' Deduct stock from Inventory
                 Dim updateStockQuery As String = "UPDATE Inventory SET QuantityInStock = QuantityInStock - @Quantity WHERE ProductID = @ProductID"
                 Dim updateStockParams As SqlParameter() = {
-                    New SqlParameter("@Quantity", quantity),
-                    New SqlParameter("@ProductID", productId)
-                }
+                New SqlParameter("@Quantity", quantity),
+                New SqlParameter("@ProductID", productId)
+            }
                 dbHelper.ExecuteNonQuery(updateStockQuery, updateStockParams)
             Next
 
             ' Commit the transaction
             dbHelper.CommitTransaction()
 
-
-
+            ' Print the receipt
             PrintReceipt()
-
 
             ' Log audit trail for adding a user action
             Dim actionDescription = $"Processed Payment - Transaction: {transactionNumber}, Cashier: {SessionData.fullName}, Amount Paid: {amountPaid}"

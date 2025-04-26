@@ -9,11 +9,11 @@ Public Class Inventory
         Try
             ' Use LEFT JOINs to ensure we get all inventory items even if some related data is missing
             Dim query As String = "SELECT I.Barcode, I.ProductID, P.ProductName, C.CategoryName, S.CompanyName, I.QuantityInStock, " &
-                                 "I.WholesaleDiscount, I.ExpirationDate, I.CriticalLevel, I.UnitPrice " &
-                                 "FROM Inventory I " &
-                                 "LEFT JOIN Products P ON I.ProductID = P.ProductID " &
-                                 "LEFT JOIN Categories C ON P.CategoryID = C.CategoryID " &
-                                 "LEFT JOIN Suppliers S ON I.SupplierID = S.SupplierID"
+                              "I.WholesaleDiscount, I.ExpirationDate, I.CriticalLevel, I.UnitPrice " &
+                              "FROM Inventory I " &
+                              "LEFT JOIN Products P ON I.ProductID = P.ProductID " &
+                              "LEFT JOIN Categories C ON P.CategoryID = C.CategoryID " &
+                              "LEFT JOIN Suppliers S ON I.SupplierID = S.SupplierID"
 
             Using conn As New SqlConnection(connectionString)
                 conn.Open()
@@ -22,9 +22,16 @@ Public Class Inventory
                 Dim adapter As New SqlDataAdapter(cmd)
                 adapter.Fill(dt)
 
-                ' Bind the data to the DataGridView
-                dgvInventory.DataSource = dt
+                ' Filter out rows with no barcodes
+                Dim filteredRows = dt.Select("Barcode IS NOT NULL AND Barcode <> ''")
+                Dim filteredTable As DataTable = dt.Clone() ' Clone the structure of the original DataTable
 
+                For Each row As DataRow In filteredRows
+                    filteredTable.ImportRow(row) ' Import only rows with valid barcodes
+                Next
+
+                ' Bind the filtered data to the DataGridView
+                dgvInventory.DataSource = filteredTable
 
                 ' Hide the ProductID column (optional)
                 dgvInventory.Columns("ProductID").Visible = False
@@ -35,11 +42,8 @@ Public Class Inventory
                     dgvInventory.Columns("Barcode").Width = 200 ' Adjust width as needed
                 End If
 
-
                 ' Set the width of the ProductName column
                 dgvInventory.Columns("ProductName").Width = 550
-
-
 
                 ' Set the width of the CategoryName and CompanyName columns
                 If dgvInventory.Columns.Contains("CategoryName") Then
@@ -52,7 +56,7 @@ Public Class Inventory
 
                 ' Format the WholesaleDiscount column header
                 If dgvInventory.Columns.Contains("WholesaleDiscount") Then
-                    dgvInventory.Columns("WholesaleDiscount").HeaderText = "WholesaleDiscount"
+                    dgvInventory.Columns("WholesaleDiscount").HeaderText = "Wholesale Discount"
                 End If
 
                 If dgvInventory.Columns.Contains("UnitPrice") Then
@@ -64,7 +68,7 @@ Public Class Inventory
                 ' Set other columns to auto-size to fill remaining space
                 For Each column As DataGridViewColumn In dgvInventory.Columns
                     If column.Name <> "ProductName" AndAlso column.Name <> "ProductID" AndAlso
-                       column.Name <> "CategoryName" AndAlso column.Name <> "CompanyName" Then
+                   column.Name <> "CategoryName" AndAlso column.Name <> "CompanyName" Then
                         column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
                     End If
                 Next
@@ -76,7 +80,7 @@ Public Class Inventory
                 dgvInventory.Refresh()
 
                 ' Check for critical stock levels
-                CheckCriticalLevel(dt)
+                CheckCriticalLevel(filteredTable)
             End Using
 
             ' Set DataGridView background color to white
