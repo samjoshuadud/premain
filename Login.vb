@@ -25,6 +25,157 @@ Public Class Login
         txtPassword.PasswordChar = "*" ' Hide the password characters
         ' Optionally, you can set the toggle button's default text or icon here.
         btnTogglePassword.Text = "Show Password" ' Or set an icon if needed
+        
+        ' Check if there's an admin user in the database
+        CheckForAdminUser()
+    End Sub
+
+    ' Method to check if any admin users exist in the database
+    Private Sub CheckForAdminUser()
+        Try
+            Using conn As New SqlConnection(connectionString)
+                conn.Open()
+                
+                ' First check if the Users table exists
+                If TableExists("Users") Then
+                    ' Query to check if any Admin users exist
+                    Dim query As String = "SELECT COUNT(*) FROM Users WHERE Role = 'Admin'"
+                    
+                    Using cmd As New SqlCommand(query, conn)
+                        Dim adminCount As Integer = Convert.ToInt32(cmd.ExecuteScalar())
+                        
+                        ' If no admins exist, show the admin creation form
+                        If adminCount = 0 Then
+                            ShowCreateAdminForm()
+                        End If
+                    End Using
+                Else
+                    ' Users table doesn't exist, need to initialize database
+                    Dim result = MessageBox.Show("The Users table does not exist in the database. Would you like to initialize the database and create an admin user?", 
+                                                "Database Setup", MessageBoxButtons.YesNo, MessageBoxIcon.Question)
+                    
+                    If result = DialogResult.Yes Then
+                        ' Create the Users table
+                        CreateUsersTable()
+                        ' Then show the admin creation form
+                        ShowCreateAdminForm()
+                    Else
+                        MessageBox.Show("The application requires a properly set up database. The application will now close.", 
+                                        "Application Closing", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                        Application.Exit()
+                    End If
+                End If
+            End Using
+        Catch ex As SqlException
+            ' Handle specific SQL exceptions
+            If ex.Number = 4060 Then ' Database does not exist
+                MessageBox.Show("The database does not exist. Please set up the database first.", 
+                               "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                
+                ' Show the database connection form to allow setting up a new connection
+                dbLoginForm.ShowDialog()
+                
+                ' Check again after the user has set up the connection
+                If AppConfig.TestConnection() Then
+                    CheckForAdminUser() ' Recursive call to check again
+                Else
+                    Application.Exit()
+                End If
+            Else
+                ' Other SQL exceptions
+                MessageBox.Show("Database error: " & ex.Message & vbCrLf & "Please check your database connection.", 
+                               "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                dbLoginForm.ShowDialog() ' Show connection form
+            End If
+        Catch ex As Exception
+            ' If there's a general error, inform the user
+            MessageBox.Show("Error checking for administrator accounts: " & ex.Message & 
+                           vbCrLf & "Please check your database connection.", 
+                           "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
+    End Sub
+    
+    ' Helper method to show the admin creation form
+    Private Sub ShowCreateAdminForm()
+        MessageBox.Show("No administrator accounts found in the system. You need to create an administrator account to continue.", 
+                       "Admin Required", MessageBoxButtons.OK, MessageBoxIcon.Information)
+        
+        ' Show the admin creation form
+        Dim createAdminForm As New CreateAdminForm()
+        Dim result = createAdminForm.ShowDialog()
+        
+        ' If user cancelled without creating an admin, exit the application
+        If result = DialogResult.Cancel Then
+            MessageBox.Show("The system requires at least one administrator account. The application will now close.", 
+                           "Application Closing", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Application.Exit()
+        End If
+    End Sub
+    
+    ' Method to check if a table exists in the database
+    Private Function TableExists(tableName As String) As Boolean
+        Using conn As New SqlConnection(connectionString)
+            conn.Open()
+            
+            ' Query to check if table exists
+            Dim query As String = "SELECT CASE WHEN EXISTS(SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = @TableName) THEN 1 ELSE 0 END"
+            
+            Using cmd As New SqlCommand(query, conn)
+                cmd.Parameters.AddWithValue("@TableName", tableName)
+                Return Convert.ToBoolean(cmd.ExecuteScalar())
+            End Using
+        End Using
+    End Function
+    
+    ' Method to create the Users table if it doesn't exist
+    Private Sub CreateUsersTable()
+        Try
+            Using conn As New SqlConnection(connectionString)
+                conn.Open()
+                
+                ' SQL query to create the Users table
+                Dim query As String = "
+                CREATE TABLE Users (
+                    UserID INT IDENTITY(1,1) PRIMARY KEY,
+                    Username NVARCHAR(50) NOT NULL UNIQUE,
+                    Password NVARCHAR(100) NOT NULL,
+                    FullName NVARCHAR(100) NOT NULL,
+                    Email NVARCHAR(100),
+                    Role NVARCHAR(20) NOT NULL,
+                    FirstName NVARCHAR(50),
+                    MiddleInitial NVARCHAR(10),
+                    LastName NVARCHAR(50),
+                    Gender NVARCHAR(10),
+                    Age INT,
+                    Address NVARCHAR(200),
+                    PhoneNumber NVARCHAR(20)
+                )"
+                
+                Using cmd As New SqlCommand(query, conn)
+                    cmd.ExecuteNonQuery()
+                    MessageBox.Show("Users table created successfully.", "Database Setup", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                End Using
+                
+                ' Create log history table if needed
+                If Not TableExists("loghistory") Then
+                    Dim logQuery As String = "
+                    CREATE TABLE loghistory (
+                        ID INT IDENTITY(1,1) PRIMARY KEY,
+                        Role NVARCHAR(20),
+                        FullName NVARCHAR(100),
+                        Action NVARCHAR(200),
+                        Date DATETIME DEFAULT GETDATE()
+                    )"
+                    
+                    Using cmd As New SqlCommand(logQuery, conn)
+                        cmd.ExecuteNonQuery()
+                        MessageBox.Show("Log history table created successfully.", "Database Setup", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                    End Using
+                End If
+            End Using
+        Catch ex As Exception
+            MessageBox.Show("Error creating database tables: " & ex.Message, "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
     End Sub
 
     Private Sub BtnLogin_Click(sender As Object, e As EventArgs) Handles btnLogin.Click
