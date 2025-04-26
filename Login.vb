@@ -4,14 +4,30 @@ Imports Microsoft.Data.SqlClient
 Imports Microsoft.Identity.Client
 Imports System.IO
 
-
-
 Public Class Login
     ' SQL Server connection string
     Private connectionString As String = AppConfig.ConnectionString
+    
+    ' Reference to the DatabaseLogin form
+    Private dbLoginForm As DatabaseLogin
+
+    ' Form Load Event for login form
+    Private Sub Login_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        ' Initialize database connection form
+        dbLoginForm = New DatabaseLogin()
+        
+        ' Clear session data when login form is loaded
+        SessionData.CurrentUserId = 0
+        SessionData.role = String.Empty
+        SessionData.fullName = String.Empty
+
+        ' Set the password field to hide text by default
+        txtPassword.PasswordChar = "*" ' Hide the password characters
+        ' Optionally, you can set the toggle button's default text or icon here.
+        btnTogglePassword.Text = "Show Password" ' Or set an icon if needed
+    End Sub
 
     Private Sub BtnLogin_Click(sender As Object, e As EventArgs) Handles btnLogin.Click
-
         ' Get username and password, trim to avoid leading/trailing spaces
         Dim username = txtUsername.Text.Trim
         Dim password = txtPassword.Text.Trim
@@ -69,7 +85,6 @@ Public Class Login
         End Try
     End Sub
 
-
     Private Sub LogHistoryEntry(ByVal Role As String, ByVal FullName As String, ByVal Action As String)
         Try
             Using connection As New SqlConnection(connectionString)
@@ -83,21 +98,6 @@ Public Class Login
         Catch ex As Exception
             MessageBox.Show("Error logging action: " & ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
-    End Sub
-
-
-
-    ' Form Load Event for login form
-    Private Sub Login_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        ' Clear session data when login form is loaded
-        SessionData.CurrentUserId = 0
-        SessionData.role = String.Empty
-        SessionData.fullName = String.Empty
-
-        ' Set the password field to hide text by default
-        txtPassword.PasswordChar = "*" ' Hide the password characters
-        ' Optionally, you can set the toggle button's default text or icon here.
-        btnTogglePassword.Text = "Show Password" ' Or set an icon if needed
     End Sub
 
     ' Event handler for Toggle Password Visibility
@@ -115,9 +115,6 @@ Public Class Login
             btnTogglePassword.Text = "Show"
         End If
     End Sub
-
-
-
 
     Private Function ValidateCredentials(username As String, password As String) As Boolean
         Dim isValid As Boolean = False
@@ -148,24 +145,15 @@ Public Class Login
         Return isValid
     End Function
 
-
-
     Private Sub Panel2_Paint(sender As Object, e As PaintEventArgs) Handles Panel2.Paint
         ' Change the background color of the Panel during the paint event
         Panel2.BackColor = ColorTranslator.FromHtml("#251F1F")
     End Sub
 
-
-
+    ' Update the Label3_Click method to show the DatabaseLogin form
     Private Sub Label3_Click_1(sender As Object, e As EventArgs) Handles Label3.Click
-        If DatabaseLogin.Visible Then
-            DatabaseLogin.Hide()
-        Else
-            DatabaseLogin.Show()
-        End If
+        dbLoginForm.ShowDialog() ' Show the DatabaseLogin form as a dialog
+        ' After dialog closes, update the connection string
+        connectionString = AppConfig.ConnectionString
     End Sub
-    ' Event handler for Toggle Password Visibility
-
-
-
 End Class

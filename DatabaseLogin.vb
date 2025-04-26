@@ -15,12 +15,18 @@ Public Class DatabaseLogin
             Exit Sub
         End If
 
-        initializeConnection()
-
-        If conBool Then
+        ' Update AppConfig with new connection parameters
+        AppConfig.UpdateConnectionParameters(ipaddss, username, pass)
+        
+        ' Test the connection
+        If AppConfig.TestConnection() Then
+            conBool = True
+            Login.Label3.Text = "CONNECTED"
             MsgBox("Connection successful!", MsgBoxStyle.Information, "Connection Status")
-            Me.Hide()
+            Me.Close()
         Else
+            conBool = False
+            Login.Label3.Text = "DISCONNECTED"
             MsgBox("Connection failed. Please check your credentials or database configuration.", MsgBoxStyle.Critical, "Connection Status")
         End If
     End Sub
@@ -31,6 +37,10 @@ Public Class DatabaseLogin
 
     Private Sub DatabaseLogin_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Me.BackColor = ColorTranslator.FromHtml("#F1EFEC")
-
+        
+        ' Initialize fields with current AppConfig values
+        txtip.Text = AppConfig.ServerIP
+        txtuser.Text = AppConfig.UserID
+        txtpass.Text = AppConfig.Password
     End Sub
 End Class

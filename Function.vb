@@ -22,40 +22,44 @@ Module DatabaseFunctions
     Private connectionString As String = AppConfig.ConnectionString
 
     Public Sub initializeConnection()
-
         Dim connect As String = Login.Label3.Text
         Dim disconnect As String = Login.Label3.Text
         Try
-            If ipaddss <> "" Then
-                If username <> "" And pass <> "" Then
-                    Dim connString As String = ("Server=localhost;Database=updated;User ID=" & username & ";Password=" & pass & "")
-                    connection = New SqlConnection(connString)
+            ' Use the values from ipaddss, username, and pass module variables if they're set
+            ' Otherwise fall back to AppConfig values
+            Dim serverIP As String = If(String.IsNullOrEmpty(ipaddss), AppConfig.ServerIP, ipaddss)
+            Dim userID As String = If(String.IsNullOrEmpty(username), AppConfig.UserID, username)
+            Dim password As String = If(String.IsNullOrEmpty(pass), AppConfig.Password, pass)
+            
+            If Not String.IsNullOrEmpty(serverIP) AndAlso Not String.IsNullOrEmpty(userID) AndAlso Not String.IsNullOrEmpty(password) Then
+                ' Use the AppConfig connection string format with our variables
+                Dim connString As String = $"Data Source={serverIP},1433;Initial Catalog=updated;User ID={userID};Password={password};Encrypt=True;TrustServerCertificate=True"
+                connection = New SqlConnection(connString)
 
-                    Try
-                        connection.Open()
-                        If connection.State = ConnectionState.Open Then
-                            status = "CONNECTED"
-                            Login.Label3.Text = status
-                            conBool = True
-                            Login.Label3.Text = connect
-                        Else
-                            status = "DISCONNECTED"
-                            conBool = False
-                            Login.Label3.Text = status
-                            Login.Label3.Text = disconnect
-                        End If
-                    Catch ex As Exception
+                Try
+                    connection.Open()
+                    If connection.State = ConnectionState.Open Then
+                        status = "CONNECTED"
+                        Login.Label3.Text = status
+                        conBool = True
+                        Login.Label3.Text = connect
+                    Else
                         status = "DISCONNECTED"
                         conBool = False
                         Login.Label3.Text = status
                         Login.Label3.Text = disconnect
-                    End Try
-                Else
+                    End If
+                Catch ex As Exception
                     status = "DISCONNECTED"
                     conBool = False
                     Login.Label3.Text = status
                     Login.Label3.Text = disconnect
-                End If
+                End Try
+            Else
+                status = "DISCONNECTED"
+                conBool = False
+                Login.Label3.Text = status
+                Login.Label3.Text = disconnect
             End If
         Catch ex As Exception
             ' Optionally log exception
@@ -63,7 +67,6 @@ Module DatabaseFunctions
             Login.Label3.Text = status
             conBool = False
         End Try
-
     End Sub
 
     Public Sub closeConnection()
