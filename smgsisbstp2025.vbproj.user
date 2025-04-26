@@ -1,0 +1,95 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Compile Update="AuditTrail.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Category.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="ChangePassword.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="DatabaseHelper.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="DatabaseLogin.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="dbHelperClass.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Delivery.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="DeliveryItems.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="DeliveryList.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="DeliverySaveProduct.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Discount.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="ExpirationReports.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="FastMovingProduct.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Inventory.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="InventoryReports.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="LogHistory.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Login.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Main.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="OnetimePassword.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="POS.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Product.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="ReturnProduct.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="SalesReports.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="SelectProduct.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Supplier.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="TodaySales.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="User.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="UserCancel.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Vat.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="VoidedTransaction.vb">
+      <SubType>Form</SubType>
+    </Compile>
+  </ItemGroup>
+</Project>
