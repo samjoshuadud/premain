@@ -336,6 +336,12 @@ Public Class Discount
 
         CenterPanel()
 
+        If SessionData.role.Equals("Staff", StringComparison.OrdinalIgnoreCase) Then
+            BtnAdd.Enabled = False
+            btnEdit.Enabled = False
+            btnDelete.Enabled = False
+        End If
+
 
 
     End Sub

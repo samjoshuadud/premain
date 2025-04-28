@@ -45,6 +45,9 @@ Public Class Main
         Timer2.Interval = 30000 ' Set the interval to 30 seconds
         Timer2.Start()
 
+        If SessionData.role.Equals("Staff", StringComparison.OrdinalIgnoreCase) Then
+            UserToolStripMenuItem.Visible = False
+        End If
         ' Check database connection and create admin if needed
         ' ... existing code ...
     End Sub

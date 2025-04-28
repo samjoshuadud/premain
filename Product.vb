@@ -46,6 +46,13 @@ Public Class Product
         ' Force the Edit column to be the last column one more time after everything is loaded
         Application.DoEvents()
         EnsureEditColumnIsLast()
+
+        If SessionData.role.Equals("Staff", StringComparison.OrdinalIgnoreCase) Then
+            btnAdd.Enabled = False
+            btnEdit.Enabled = False
+            btnDelete.Enabled = False
+        End If
+
     End Sub
 
     ' Helper method to ensure Edit column is the last column

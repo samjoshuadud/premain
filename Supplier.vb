@@ -11,7 +11,8 @@ Public Class Supplier
 
     ' Form load event to load supplier data into DataGridView
     Private Sub Supplier_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        LoadSuppliers() ' Load suppliers when the form is loaded
+        ' Load suppliers when the form is loaded
+        LoadSuppliers()
 
         ' Set DataGridView settings and appearance
         With dgvSuppliers
@@ -54,15 +55,12 @@ Public Class Supplier
             dgvSuppliers.Columns.Add(editColumn)
         End If
 
-        '' Add Delete column if not already added
-        'If dgvSuppliers.Columns.Contains("Delete") = False Then
-        '    Dim deleteColumn As New DataGridViewImageColumn()
-        '    deleteColumn.Name = "Delete"
-        '    deleteColumn.HeaderText = "Delete"
-        '    deleteColumn.Width = 30
-        '    deleteColumn.Image = Image.FromFile("C:\Users\Aspire 5\source\repos\oreo-main\Resources\icons8-delete-35.png") ' <-- path to your image
-        '    dgvSuppliers.Columns.Add(deleteColumn)
-        'End If
+        ' Disable buttons if the role is "Staff"
+        If SessionData.role.Equals("Staff", StringComparison.OrdinalIgnoreCase) Then
+            btnAdd.Enabled = False
+            btnEdit.Enabled = False
+            btnDelete.Enabled = False
+        End If
 
         SetPlaceholders()
     End Sub
@@ -267,7 +265,7 @@ Public Class Supplier
 
             ' Now update the products related to this supplier
             Using connection As New SqlConnection(connectionString)
-                Dim updateProductsQuery As String = "UPDATE Products SET SupplierID = @supplierId WHERE SupplierID = @oldSupplierId"
+                Dim updateProductsQuery As String = "UPDATE Inventory SET SupplierID = @supplierId WHERE SupplierID = @oldSupplierId"
                 Dim command As New SqlCommand(updateProductsQuery, connection)
 
                 ' Add parameters to update the products (if necessary)
@@ -327,7 +325,7 @@ Public Class Supplier
                     connection.Open()
 
                     ' Set the supplierid to NULL in the Product table (disassociate the product from the supplier)
-                    Dim updateProductCommand As New SqlCommand("UPDATE Products SET supplierid = NULL WHERE supplierid = @supplierId", connection)
+                    Dim updateProductCommand As New SqlCommand("UPDATE Inventory SET supplierid = NULL WHERE supplierid = @supplierId", connection)
                     updateProductCommand.Parameters.AddWithValue("@supplierId", selectedSupplierId)
                     updateProductCommand.ExecuteNonQuery()
 

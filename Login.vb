@@ -209,13 +209,13 @@ Public Class Login
                         If reader.Read Then
                             ' Retrieve user information
                             Dim userId As Integer = reader("UserID")
-                            Dim role = reader("Role").ToString
-                            
+                            Dim role = reader("Role").ToString()
+
                             ' Construct full name from components
                             Dim firstName = reader("FirstName").ToString()
                             Dim middleInitial = If(reader.IsDBNull(reader.GetOrdinal("MiddleInitial")), "", reader("MiddleInitial").ToString())
                             Dim lastName = reader("LastName").ToString()
-                            
+
                             ' Build the full name
                             Dim fullName = firstName
                             If Not String.IsNullOrWhiteSpace(middleInitial) Then
@@ -233,11 +233,19 @@ Public Class Login
                             ' Log the login action in the loghistory table
                             LogHistoryEntry(role, fullName, "User Logged In")
 
-                            ' Show the main form to all users
-                            Dim mainForm As New Main(fullName)
-                            Hide()
-                            mainForm.ShowDialog()
-                            Close()
+                            ' Show the POS form if the role is "cashier"
+                            If role.Equals("cashier", StringComparison.OrdinalIgnoreCase) Then
+                                Dim posForm As New POS(role)
+                                Hide()
+                                posForm.ShowDialog()
+                                Close()
+                            Else
+                                ' Show the main form for other roles
+                                Dim mainForm As New Main(fullName)
+                                Hide()
+                                mainForm.ShowDialog()
+                                Close()
+                            End If
                         Else
                             ' Invalid credentials
                             MessageBox.Show("Invalid username or password.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)

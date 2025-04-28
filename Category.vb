@@ -80,6 +80,7 @@ Public Class Category
 
     End Sub
     Private Sub Category_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        ' Load categories when the form is loaded
         LoadCategories()
 
         ' Hide createdAt and updatedAt columns if they exist
@@ -112,18 +113,16 @@ Public Class Category
         editColumn.ImageLayout = DataGridViewImageCellLayout.Zoom
         dgvCategories.Columns.Add(editColumn)
 
-        ''' Add Delete column
-        ''Dim deleteColumn As New DataGridViewImageColumn()
-        ''deleteColumn.Name = "Delete"
-        ''deleteColumn.HeaderText = "Delete"
-        ''deleteColumn.Width = 40
-        ''deleteColumn.Image = Image.FromFile("C:\Users\Aspire 5\source\repos\oreo-main\Resources\icons8-delete-35.png") ' <-- path to your image
-
-        'deleteColumn.ImageLayout = DataGridViewImageCellLayout.Zoom
-        'dgvCategories.Columns.Add(deleteColumn)
-
+        ' Setup DataGridView appearance
         SetupDataGridView()
         SetPlaceholders()
+
+        ' Disable buttons if the role is "Staff"
+        If SessionData.role.Equals("Staff", StringComparison.OrdinalIgnoreCase) Then
+            btnAdd.Enabled = False
+            btnEdit.Enabled = False
+            btnDelete.Enabled = False
+        End If
     End Sub
 
 

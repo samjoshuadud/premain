@@ -19,6 +19,12 @@ Public Class Vat
     Private Sub VatMain_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         ' Load VAT data after form load
         LoadVATData()
+
+        If SessionData.role.Equals("Staff", StringComparison.OrdinalIgnoreCase) Then
+            btnAdd.Enabled = False
+            btnEdit.Enabled = False
+            btnDelete.Enabled = False
+        End If
     End Sub
 
     ' Load VAT data into the grid
