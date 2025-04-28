@@ -412,15 +412,6 @@ Public Class POS
                 End If
             End If
 
-            ' Update the wholesale message label
-            Dim lblWholesaleMessage As Label = DirectCast(Me.Controls("lblWholesaleMessage"), Label)
-            If wholesaleApplied Then
-                lblWholesaleMessage.Text = $"Wholesale discount of {wholesaleDiscount}% applied to {productName}."
-                lblWholesaleMessage.Visible = True
-            Else
-                lblWholesaleMessage.Visible = False
-            End If
-
             dgvCart.DataSource = Nothing
             dgvCart.DataSource = cart
             UpdateCartSummary()
@@ -891,7 +882,7 @@ Public Class POS
 
                 ' Get regular price for this product to calculate the discount
                 Dim barcode As String = row("Barcode").ToString()
-                Dim query As String = "SELECT p.UnitPrice, p.WholesaleDiscount FROM Products p WHERE p.Barcode = @Barcode"
+                Dim query As String = "SELECT i.UnitPrice, i.WholesaleDiscount FROM Inventory i WHERE i.Barcode = @Barcode"
                 Dim parameters As SqlParameter() = {New SqlParameter("@Barcode", barcode)}
                 Dim productData As DataTable = dbHelper.ExecuteQuery(query, parameters)
 
