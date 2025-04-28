@@ -1,6 +1,7 @@
 ﻿Imports System.IO ' Add this import for file handling
 Imports Microsoft.Data.SqlClient
 Imports System.Data.SqlClient
+Imports iTextSharp.text.pdf
 
 Public Class Delivery
     ' Global connection string
@@ -138,6 +139,17 @@ Public Class Delivery
         dgvPendingItems.Columns.Add("ExpirationDate", "Expiration Date")
         dgvPendingItems.Columns.Add("DeliveryDate", "Delivery Date")
         dgvPendingItems.Columns.Add("UnitPrice", "Unit Price")
+        dgvPendingItems.Columns.Add("CategoryID", "Category ID")
+        dgvPendingItems.Columns("CategoryID").Visible = False
+
+        'dgvPendingItems.Columns.Add("Image", "Image")
+        'dgvPendingItems.Columns("Image").Visible = False
+
+        dgvPendingItems.Columns.Add("Expiration", "Expiration")
+        dgvPendingItems.Columns("Expiration").Visible = False ' Hide it if not needed for display
+
+
+
 
         ' Hide SupplierID and ProductID columns
         dgvPendingItems.Columns("SupplierID").Visible = False
@@ -150,6 +162,19 @@ Public Class Delivery
     ' Confirm Button: Add data to dgvPendingItems
     Private Sub btnConfirm_Click(sender As Object, e As EventArgs) Handles btnConfirm.Click
         Try
+
+            Dim barcode As String = txtBarcode.Text.Trim()
+            If String.IsNullOrEmpty(barcode) Then
+                MessageBox.Show("Please enter a valid barcode.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                txtBarcode.Focus()
+                Return
+            End If
+
+            If IsBarcodeExists(Barcode) Then
+                MessageBox.Show("The barcode already exists in the system. Please use a unique barcode.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                txtBarcode.Focus()
+                Return
+            End If
 
 
             ' Validate ComboBox selections for Supplier and Product
@@ -251,6 +276,10 @@ Public Class Delivery
             newRow.Cells("ExpirationDate").Value = dtpExpirationDate.Value.Date
             newRow.Cells("DeliveryDate").Value = dtpDeliveryDate.Value.Date
             newRow.Cells("UnitPrice").Value = sellingPrice ' Assuming UnitPrice is the same as SellingPrice
+            newRow.Cells("CategoryID").Value = DBNull.Value ' Or set the actual CategoryID value if available
+            newRow.Cells("Expiration").Value = dtpExpirationDate.Value.Date ' Or set the actual expiration date
+
+
 
 
 
@@ -485,96 +514,75 @@ Public Class Delivery
                     End If
 
                     ' Prepare the SQL Insert Query for Deliveries
-                    Dim query As String = "INSERT INTO Deliveries (TransactionNumber, ReceivedBy, SupplierID, CompanyName, ProductID, ProductName, Quantity, SellingPrice, CostPrice, ExpirationDate, DeliveryDate) " &
-                                      "VALUES (@TransactionNumber, @ReceivedBy, @SupplierID, @CompanyName, @ProductID, @ProductName, @Quantity, @SellingPrice, @CostPrice, @ExpirationDate, @DeliveryDate)"
+                    Dim deliveryQuery As String = "INSERT INTO Deliveries (TransactionNumber, ReceivedBy, SupplierID, CompanyName, ProductID, ProductName, Quantity, SellingPrice, CostPrice, ExpirationDate, DeliveryDate) " &
+                                              "VALUES (@TransactionNumber, @ReceivedBy, @SupplierID, @CompanyName, @ProductID, @ProductName, @Quantity, @SellingPrice, @CostPrice, @ExpirationDate, @DeliveryDate)"
 
-                    ' Prepare SQL Insert Query for Inventory update (including ExpirationDate)
-                    Dim inventoryQuery As String = "UPDATE Inventory SET QuantityInStock = QuantityInStock + @Quantity, ExpirationDate = @ExpirationDate, Barcode = @Barcode, UnitPrice = @UnitPrice " &
-                                                "WHERE ProductID = @ProductID AND SupplierID = @SupplierID"
+                    Dim productInsertQuery As String = "INSERT INTO Products (ProductName, CategoryID, Expiration) " &
+                                   "VALUES (@ProductName, @CategoryID, @Expiration)"
 
-                    ' Prepare SQL to Insert Inventory record if it doesn't exist
+
+                    ' Prepare SQL Insert Query for Inventory
                     Dim inventoryInsertQuery As String = "INSERT INTO Inventory (ProductID, SupplierID, QuantityInStock, ExpirationDate, Barcode, UnitPrice) " &
-                                                      "VALUES (@ProductID, @SupplierID, @Quantity, @ExpirationDate, @Barcode, @UnitPrice)"
+                                                     "VALUES (@ProductID, @SupplierID, @Quantity, @ExpirationDate, @Barcode, @UnitPrice)"
+
+                    ' Prepare SQL Insert Query for Products
+
 
                     ' Create a new connection to the database
                     Using connection As New SqlConnection(connectionString)
                         ' Open the connection before starting the transaction
                         connection.Open()
 
-                        ' Start a transaction to ensure atomicity of both operations
+                        ' Start a transaction to ensure atomicity of all operations
                         Using transaction As SqlTransaction = connection.BeginTransaction()
                             Try
                                 ' Insert the delivery record
-                                Using command As New SqlCommand(query, connection, transaction)
+                                Using deliveryCommand As New SqlCommand(deliveryQuery, connection, transaction)
                                     ' Add parameters for Deliveries
-                                    command.Parameters.AddWithValue("@TransactionNumber", transactionNumber)
-                                    command.Parameters.AddWithValue("@ReceivedBy", SessionData.fullName)  ' Use current user from SessionData
-                                    command.Parameters.AddWithValue("@SupplierID", row.Cells("SupplierID").Value)
-                                    command.Parameters.AddWithValue("@CompanyName", row.Cells("CompanyName").Value)
-                                    command.Parameters.AddWithValue("@ProductID", row.Cells("ProductID").Value)
-                                    command.Parameters.AddWithValue("@ProductName", row.Cells("ProductName").Value)
-                                    command.Parameters.AddWithValue("@Quantity", Convert.ToInt32(row.Cells("Quantity").Value))
-                                    command.Parameters.AddWithValue("@SellingPrice", Convert.ToDecimal(row.Cells("SellingPrice").Value))
-                                    command.Parameters.AddWithValue("@CostPrice", Convert.ToDecimal(row.Cells("CostPrice").Value))
-                                    command.Parameters.AddWithValue("@Barcode", row.Cells("Barcode").Value.ToString())
-                                    command.Parameters.AddWithValue("@UnitPrice", Convert.ToDecimal(row.Cells("UnitPrice").Value))
-
-                                    ' Convert expirationDate to the proper format (yyyy-MM-dd HH:mm:ss)
-                                    Dim formattedExpirationDate As String = expirationDate.ToString("yyyy-MM-dd HH:mm:ss")
-                                    command.Parameters.AddWithValue("@ExpirationDate", formattedExpirationDate)
-                                    command.Parameters.AddWithValue("@DeliveryDate", dtpDeliveryDate.Value)
+                                    deliveryCommand.Parameters.AddWithValue("@TransactionNumber", transactionNumber)
+                                    deliveryCommand.Parameters.AddWithValue("@ReceivedBy", SessionData.fullName)  ' Use current user from SessionData
+                                    deliveryCommand.Parameters.AddWithValue("@SupplierID", row.Cells("SupplierID").Value)
+                                    deliveryCommand.Parameters.AddWithValue("@CompanyName", row.Cells("CompanyName").Value)
+                                    deliveryCommand.Parameters.AddWithValue("@ProductID", row.Cells("ProductID").Value)
+                                    deliveryCommand.Parameters.AddWithValue("@ProductName", row.Cells("ProductName").Value)
+                                    deliveryCommand.Parameters.AddWithValue("@Quantity", Convert.ToInt32(row.Cells("Quantity").Value))
+                                    deliveryCommand.Parameters.AddWithValue("@SellingPrice", Convert.ToDecimal(row.Cells("SellingPrice").Value))
+                                    deliveryCommand.Parameters.AddWithValue("@CostPrice", Convert.ToDecimal(row.Cells("CostPrice").Value))
+                                    deliveryCommand.Parameters.AddWithValue("@Barcode", row.Cells("Barcode").Value.ToString())
+                                    deliveryCommand.Parameters.AddWithValue("@UnitPrice", Convert.ToDecimal(row.Cells("UnitPrice").Value))
+                                    deliveryCommand.Parameters.AddWithValue("@ExpirationDate", expirationDate)
+                                    deliveryCommand.Parameters.AddWithValue("@DeliveryDate", dtpDeliveryDate.Value)
 
                                     ' Execute Insert Query for Deliveries
-                                    command.ExecuteNonQuery()
+                                    deliveryCommand.ExecuteNonQuery()
                                 End Using
 
-                                ' First, try updating the inventory
-                                Using inventoryCommand As New SqlCommand(inventoryQuery, connection, transaction)
-                                    ' Add parameters for Inventory Update
+
+                                ' Insert the product record
+                                Using productCommand As New SqlCommand(productInsertQuery, connection, transaction)
+                                    ' Add parameters for Products
+                                    productCommand.Parameters.AddWithValue("@ProductName", row.Cells("ProductName").Value)
+                                    productCommand.Parameters.AddWithValue("@CategoryID", If(row.Cells("CategoryID")?.Value, DBNull.Value)) ' Pass CategoryID or NULL
+                                    'productCommand.Parameters.AddWithValue("@Image", If(row.Cells("Image")?.Value, DBNull.Value)) ' Pass Image or NULL
+                                    productCommand.Parameters.AddWithValue("@Expiration", If(row.Cells("Expiration")?.Value, DBNull.Value)) ' Pass Expiration or NULL
+
+                                    ' Execute Insert Query for Products
+                                    productCommand.ExecuteNonQuery()
+                                End Using
+
+
+                                ' Insert the inventory record
+                                Using inventoryCommand As New SqlCommand(inventoryInsertQuery, connection, transaction)
+                                    ' Add parameters for Inventory
                                     inventoryCommand.Parameters.AddWithValue("@ProductID", row.Cells("ProductID").Value)
                                     inventoryCommand.Parameters.AddWithValue("@SupplierID", row.Cells("SupplierID").Value)
                                     inventoryCommand.Parameters.AddWithValue("@Quantity", Convert.ToInt32(row.Cells("Quantity").Value))
-                                    inventoryCommand.Parameters.AddWithValue("@ExpirationDate", dtpExpirationDate.Value)
+                                    inventoryCommand.Parameters.AddWithValue("@ExpirationDate", expirationDate)
                                     inventoryCommand.Parameters.AddWithValue("@Barcode", row.Cells("Barcode").Value.ToString())
                                     inventoryCommand.Parameters.AddWithValue("@UnitPrice", Convert.ToDecimal(row.Cells("UnitPrice").Value))
 
-                                    ' Execute Update Query for Inventory
-                                    If inventoryCommand.ExecuteNonQuery() = 0 Then
-                                        ' If no rows were updated (i.e., product doesn't exist for this supplier), check if the product exists with a different supplier
-                                        Dim checkExistenceQuery As String = "SELECT COUNT(*) FROM Inventory WHERE ProductID = @ProductID"
-                                        Using checkCommand As New SqlCommand(checkExistenceQuery, connection, transaction)
-                                            checkCommand.Parameters.AddWithValue("@ProductID", row.Cells("ProductID").Value)
-                                            Dim exists As Integer = Convert.ToInt32(checkCommand.ExecuteScalar())
-
-                                            If exists > 0 Then
-                                                ' Product exists, but for a different SupplierID, so update the SupplierID
-                                                Dim updateSupplierQuery As String = "UPDATE Inventory SET SupplierID = @SupplierID, QuantityInStock = QuantityInStock + @Quantity, ExpirationDate = @ExpirationDate WHERE ProductID = @ProductID"
-                                                Using updateSupplierCommand As New SqlCommand(updateSupplierQuery, connection, transaction)
-                                                    updateSupplierCommand.Parameters.AddWithValue("@ProductID", row.Cells("ProductID").Value)
-                                                    updateSupplierCommand.Parameters.AddWithValue("@SupplierID", row.Cells("SupplierID").Value)
-                                                    updateSupplierCommand.Parameters.AddWithValue("@Quantity", Convert.ToInt32(row.Cells("Quantity").Value))
-                                                    updateSupplierCommand.Parameters.AddWithValue("@ExpirationDate", dtpExpirationDate.Value)
-
-                                                    ' Execute the update query
-                                                    updateSupplierCommand.ExecuteNonQuery()
-                                                End Using
-                                            Else
-                                                ' Product doesn't exist in Inventory for this Supplier, so insert a new record
-                                                Using insertInventoryCommand As New SqlCommand(inventoryInsertQuery, connection, transaction)
-                                                    ' Insert parameters for Inventory Insert
-                                                    insertInventoryCommand.Parameters.AddWithValue("@ProductID", row.Cells("ProductID").Value)
-                                                    insertInventoryCommand.Parameters.AddWithValue("@SupplierID", row.Cells("SupplierID").Value)
-                                                    insertInventoryCommand.Parameters.AddWithValue("@Quantity", Convert.ToInt32(row.Cells("Quantity").Value))
-                                                    insertInventoryCommand.Parameters.AddWithValue("@ExpirationDate", dtpExpirationDate.Value)
-                                                    insertInventoryCommand.Parameters.AddWithValue("@Barcode", row.Cells("Barcode").Value.ToString())
-                                                    insertInventoryCommand.Parameters.AddWithValue("@UnitPrice", Convert.ToDecimal(row.Cells("UnitPrice").Value))
-
-                                                    ' Execute Insert Query for Inventory
-                                                    insertInventoryCommand.ExecuteNonQuery()
-                                                End Using
-                                            End If
-                                        End Using
-                                    End If
+                                    ' Execute Insert Query for Inventory
+                                    inventoryCommand.ExecuteNonQuery()
                                 End Using
 
                                 ' Commit the transaction
@@ -608,6 +616,23 @@ Public Class Delivery
             MessageBox.Show("An error occurred while saving the delivery: " & ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
+
+    Private Function IsBarcodeExists(barcode As String) As Boolean
+        Dim query As String = "SELECT COUNT(1) FROM Inventory WHERE Barcode = @Barcode"
+        Using connection As New SqlConnection(connectionString)
+            Using cmd As New SqlCommand(query, connection)
+                cmd.Parameters.AddWithValue("@Barcode", barcode)
+                Try
+                    connection.Open()
+                    Dim count As Integer = Convert.ToInt32(cmd.ExecuteScalar())
+                    Return count > 0
+                Catch ex As Exception
+                    MessageBox.Show("Error checking barcode: " & ex.Message, "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                    Return False
+                End Try
+            End Using
+        End Using
+    End Function
 
 
     Private Sub Logaudittrail(ByVal role As String, ByVal fullName As String, ByVal action As String)
