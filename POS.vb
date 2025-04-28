@@ -396,9 +396,23 @@ Public Class POS
                     Return
                 End If
 
+                If newQuantity >= wholesaleMinimumQuantity Then
+                    unitPrice *= (1 - (wholesaleDiscount / 100)) ' Apply discount
+                    existingRow("UnitPrice") = unitPrice
+                    If Not existingRow("ItemName").ToString().Contains("(wholesale)") Then
+                        existingRow("ItemName") &= " (wholesale)"
+                    End If
+                End If
+
                 existingRow("Quantity") = newQuantity
                 existingRow("Total") = newQuantity * existingRow("UnitPrice")
             Else
+
+                If manualQuantity >= wholesaleMinimumQuantity Then
+                    unitPrice *= (1 - (wholesaleDiscount / 100)) ' Apply discount
+                    productName &= " (wholesale)" ' Append "(wholesale)" to the product name
+                End If
+
                 Dim rowIndex As Integer = cart.Rows.Count + 1
                 cart.Rows.Add(rowIndex, barcode, productName, manualQuantity, unitPrice, 0, manualQuantity * unitPrice)
             End If
