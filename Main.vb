@@ -1,5 +1,4 @@
 ﻿Imports Microsoft.Data.SqlClient
-Imports Microsoft.VisualBasic.ApplicationServices
 
 
 Public Class Main
@@ -31,7 +30,7 @@ Public Class Main
     Private Sub Main_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         ' Initialize the UI components and load data
         Me.FormBorderStyle = FormBorderStyle.None
-        
+
         ' Set the window size and position
         SetFormSizeAndPosition()
         

@@ -412,6 +412,15 @@ Public Class POS
                 End If
             End If
 
+            ' Update the wholesale message label
+            Dim lblWholesaleMessage As Label = DirectCast(Me.Controls("lblWholesaleMessage"), Label)
+            If wholesaleApplied Then
+                lblWholesaleMessage.Text = $"Wholesale discount of {wholesaleDiscount}% applied to {productName}."
+                lblWholesaleMessage.Visible = True
+            Else
+                lblWholesaleMessage.Visible = False
+            End If
+
             dgvCart.DataSource = Nothing
             dgvCart.DataSource = cart
             UpdateCartSummary()
@@ -478,16 +487,6 @@ Public Class POS
             MessageBox.Show("Error removing item: " & ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
     End Sub
-
-
-
-
-
-
-
-
-
-
 
     '==================== FOR GetProductId ==================================================
     Private Function GetProductId(barcode As String) As Integer
@@ -900,6 +899,9 @@ Public Class POS
                     Dim regularPrice As Decimal = Convert.ToDecimal(productData.Rows(0)("UnitPrice"))
                     Dim itemDiscount As Decimal = (regularPrice - unitPrice) * quantity
                     totalWholesaleDiscount += itemDiscount
+
+                    ' Add a message for this product
+                    sb.AppendLine($"  * Wholesale discount applied: ₱{itemDiscount:0.00}")
                 End If
             End If
 
@@ -1732,6 +1734,17 @@ Public Class POS
         If Me.Parent IsNot Nothing Then
             Me.Parent.PerformLayout()
         End If
+
+        Dim lblWholesaleMessage As New Label With {
+        .Name = "lblWholesaleMessage",
+        .Text = "",
+        .AutoSize = True,
+        .Font = New Font("Segoe UI", 10, FontStyle.Bold),
+        .ForeColor = Color.Green,
+        .Location = New Point(20, dgvCart.Bottom + 10), ' Position below the DataGridView
+        .Visible = False ' Initially hidden
+    }
+        Me.Controls.Add(lblWholesaleMessage)
 
         ' Initial resize to set correct positions
         HandleFormResize()
