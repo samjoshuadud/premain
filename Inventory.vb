@@ -9,11 +9,11 @@ Public Class Inventory
         Try
             ' Use LEFT JOINs to ensure we get all inventory items even if some related data is missing
             Dim query As String = "SELECT I.Barcode, I.ProductID, P.ProductName, C.CategoryName, S.CompanyName, I.QuantityInStock, " &
-                              "I.WholesaleDiscount, I.ExpirationDate, I.CriticalLevel, I.UnitPrice " &
-                              "FROM Inventory I " &
-                              "LEFT JOIN Products P ON I.ProductID = P.ProductID " &
-                              "LEFT JOIN Categories C ON P.CategoryID = C.CategoryID " &
-                              "LEFT JOIN Suppliers S ON I.SupplierID = S.SupplierID"
+                          "I.WholesaleDiscount, I.ExpirationDate, I.CriticalLevel, I.UnitPrice " &
+                          "FROM Inventory I " &
+                          "LEFT JOIN Products P ON I.ProductID = P.ProductID " &
+                          "LEFT JOIN Categories C ON P.CategoryID = C.CategoryID " &
+                          "LEFT JOIN Suppliers S ON I.SupplierID = S.SupplierID"
 
             Using conn As New SqlConnection(connectionString)
                 conn.Open()
@@ -31,47 +31,57 @@ Public Class Inventory
                 Next
 
                 ' Bind the filtered data to the DataGridView
+
                 dgvInventory.DataSource = filteredTable
+
+                ' Set AutoSizeColumnsMode to None first to prevent it from overriding your specific settings
+                dgvInventory.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None
+
 
                 ' Hide the ProductID column (optional)
                 dgvInventory.Columns("ProductID").Visible = False
 
-                ' Set the Barcode column properties
+                ' Set explicit width for every column
                 If dgvInventory.Columns.Contains("Barcode") Then
                     dgvInventory.Columns("Barcode").HeaderText = "Barcode"
-                    dgvInventory.Columns("Barcode").Width = 200 ' Adjust width as needed
+                    'dgvInventory.Columns("Barcode").Width = 200
                 End If
 
-                ' Set the width of the ProductName column
-                dgvInventory.Columns("ProductName").Width = 550
+                'dgvInventory.Columns("ProductName").Width = 200
 
-                ' Set the width of the CategoryName and CompanyName columns
                 If dgvInventory.Columns.Contains("CategoryName") Then
-                    dgvInventory.Columns("CategoryName").Width = 200
+                    'dgvInventory.Columns("CategoryName").Width = 200
                 End If
 
                 If dgvInventory.Columns.Contains("CompanyName") Then
-                    dgvInventory.Columns("CompanyName").Width = 200
+                    'dgvInventory.Columns("CompanyName").Width = 200
                 End If
 
-                ' Format the WholesaleDiscount column header
+                If dgvInventory.Columns.Contains("QuantityInStock") Then
+                    'dgvInventory.Columns("QuantityInStock").Width = 150
+                End If
+
                 If dgvInventory.Columns.Contains("WholesaleDiscount") Then
                     dgvInventory.Columns("WholesaleDiscount").HeaderText = "Wholesale Discount"
+                    'dgvInventory.Columns("WholesaleDiscount").Width = 150
+                End If
+
+                If dgvInventory.Columns.Contains("ExpirationDate") Then
+                    'dgvInventory.Columns("ExpirationDate").Width = 150
+                End If
+
+                If dgvInventory.Columns.Contains("CriticalLevel") Then
+                    'dgvInventory.Columns("CriticalLevel").Width = 200
                 End If
 
                 If dgvInventory.Columns.Contains("UnitPrice") Then
                     dgvInventory.Columns("UnitPrice").HeaderText = "Unit Price"
                     dgvInventory.Columns("UnitPrice").DefaultCellStyle.Format = "C2" ' Format as currency
-                    dgvInventory.Columns("UnitPrice").Width = 150 ' Set a fixed width
+                    'dgvInventory.Columns("UnitPrice").Width = 150
                 End If
 
-                ' Set other columns to auto-size to fill remaining space
-                For Each column As DataGridViewColumn In dgvInventory.Columns
-                    If column.Name <> "ProductName" AndAlso column.Name <> "ProductID" AndAlso
-                   column.Name <> "CategoryName" AndAlso column.Name <> "CompanyName" Then
-                        column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
-                    End If
-                Next
+                ' Apply Fill mode to ensure all available space is used
+                'dgvInventory.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
 
                 ' Hide the row selection column (extra column with FullRowSelect mode)
                 dgvInventory.RowHeadersVisible = False
@@ -450,6 +460,9 @@ Public Class Inventory
 
     Private Sub Button4_Click(sender As Object, e As EventArgs) Handles Button4.Click
         LoadInventoryData()
+        'SetupDataGridView()  ' Add this line
+
+
     End Sub
 
     Private Function GetCurrentUserRole() As String
