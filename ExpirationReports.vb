@@ -93,27 +93,27 @@ Public Class ExpirationReports
 
                 ' SQL query to retrieve the latest expiration data per product from Inventory
                 Dim query As String = "
-                WITH LatestPerProduct AS (
-                    SELECT i.*, 
-                           ROW_NUMBER() OVER (PARTITION BY i.ProductID ORDER BY i.ExpirationDate DESC) AS rn
-                    FROM dbo.Inventory i
-                )
-                SELECT 
-                    p.ProductName, 
-                    lpp.ExpirationDate, 
-                    lpp.QuantityInStock,
-                    DATEDIFF(DAY, GETDATE(), lpp.ExpirationDate) AS DaysToExpire,
-                    CASE
-                        WHEN DATEDIFF(DAY, GETDATE(), lpp.ExpirationDate) <= 0 THEN 'Expired'
-                        WHEN DATEDIFF(DAY, GETDATE(), lpp.ExpirationDate) <= 30 THEN 'Expiring Soon'
-                        ELSE 'Good'
-                    END AS Status,
-                    s.SupplierName
-                FROM LatestPerProduct lpp
-                LEFT JOIN dbo.Products p ON lpp.ProductID = p.ProductID
-                LEFT JOIN dbo.Suppliers s ON lpp.SupplierID = s.SupplierID
-                WHERE lpp.rn = 1
-                ORDER BY lpp.ExpirationDate DESC;"
+                        WITH LatestPerProduct AS (
+                            SELECT i.*, 
+                                   ROW_NUMBER() OVER (PARTITION BY i.ProductID ORDER BY i.ExpirationDate DESC) AS rn
+                            FROM dbo.Inventory i
+                        )
+                        SELECT 
+                            p.ProductName, 
+                            lpp.ExpirationDate, 
+                            lpp.QuantityInStock,
+                            DATEDIFF(DAY, GETDATE(), lpp.ExpirationDate) AS DaysToExpire,
+                            CASE
+                                WHEN DATEDIFF(DAY, GETDATE(), lpp.ExpirationDate) <= 0 THEN 'Expired'
+                                WHEN DATEDIFF(DAY, GETDATE(), lpp.ExpirationDate) <= 30 THEN 'Expiring Soon'
+                                ELSE 'Good'
+                            END AS Status,
+                            s.CompanyName AS CompanyName
+                        FROM LatestPerProduct lpp
+                        LEFT JOIN dbo.Products p ON lpp.ProductID = p.ProductID
+                        LEFT JOIN dbo.Suppliers s ON lpp.SupplierID = s.SupplierID
+                        WHERE lpp.rn = 1
+                        ORDER BY lpp.ExpirationDate DESC;"
 
                 ' Create the command with the query
                 Dim command As New SqlCommand(query, connection)
@@ -127,7 +127,7 @@ Public Class ExpirationReports
                 ' Add columns to the DataGridView in the desired order
                 If dgvExpirationReport.Columns.Count = 0 Then
                     dgvExpirationReport.Columns.Add("ProductName", "Product Name")
-                    dgvExpirationReport.Columns.Add("SupplierName", "Supplier")
+                    dgvExpirationReport.Columns.Add("CompanyName", "Supplier")
                     dgvExpirationReport.Columns.Add("QuantityInStock", "Stock Quantity")
                     dgvExpirationReport.Columns.Add("Status", "Status")
                     dgvExpirationReport.Columns.Add("DaysToExpire", "Days to Expire")
@@ -147,7 +147,7 @@ Public Class ExpirationReports
                     ' Add the row to the DataGridView
                     dgvExpirationReport.Rows.Add(
                     reader("ProductName").ToString(),
-                    If(IsDBNull(reader("SupplierName")), "N/A", reader("SupplierName").ToString()),
+                    If(IsDBNull(reader("CompanyName")), "N/A", reader("CompanyName").ToString()),
                     reader("QuantityInStock").ToString(),
                     reader("Status").ToString(),
                     reader("DaysToExpire").ToString(),
@@ -160,7 +160,7 @@ Public Class ExpirationReports
 
                 ' Manually adjust specific columns if needed for better visual layout
                 dgvExpirationReport.Columns("ProductName").Width = 200  ' Set width for Product Name
-                dgvExpirationReport.Columns("SupplierName").Width = 150  ' Set width for Supplier Name
+                dgvExpirationReport.Columns("CompanyName").Width = 150  ' Set width for Supplier Name
                 dgvExpirationReport.Columns("QuantityInStock").Width = 120  ' Set width for Quantity
                 dgvExpirationReport.Columns("Status").Width = 150  ' Set width for Status
                 dgvExpirationReport.Columns("DaysToExpire").Width = 120  ' Set width for Days to Expire
@@ -300,7 +300,7 @@ Public Class ExpirationReports
 
                     ' Add cells with data
                     AddCell(table, SafeGetCellValue(row, "ProductName"), cellFont, backColor)
-                    AddCell(table, SafeGetCellValue(row, "SupplierName"), cellFont, backColor)
+                    AddCell(table, SafeGetCellValue(row, "CompanyName"), cellFont, backColor)
                     AddCell(table, SafeGetCellValue(row, "QuantityInStock"), cellFont, backColor, Element.ALIGN_CENTER)
                     AddCell(table, status, cellFont, backColor, Element.ALIGN_CENTER)
                     AddCell(table, SafeGetCellValue(row, "DaysToExpire"), cellFont, backColor, Element.ALIGN_CENTER)
@@ -472,7 +472,7 @@ Public Class ExpirationReports
                     currentX += columnWidths(0)
 
                     ' Supplier - left aligned
-                    e.Graphics.DrawString(SafeGetCellValue(row, "SupplierName"), normalFont, Brushes.Black,
+                    e.Graphics.DrawString(SafeGetCellValue(row, "CompanyName"), normalFont, Brushes.Black,
                                         currentX + cellPadding, currentY + cellPadding)
                     currentX += columnWidths(1)
 

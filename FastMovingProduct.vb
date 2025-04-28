@@ -76,16 +76,18 @@ Public Class FastMovingProduct
                        SUM(si.Quantity) AS TotalSold, 
                        FORMAT(SUM(si.Quantity * si.UnitPrice), 'C', 'en-PH') AS TotalSalesValue,
                        c.CategoryName,
-                       s.SupplierName
+                       s.CompanyName
                 FROM SaleItems si
                 INNER JOIN Products p ON si.ProductID = p.ProductID
                 INNER JOIN Sales sa ON si.SaleID = sa.SaleID
                 LEFT JOIN Categories c ON p.CategoryID = c.CategoryID
-                LEFT JOIN Suppliers s ON p.SupplierID = s.SupplierID
+                LEFT JOIN Inventory i ON p.ProductID = i.ProductID
+                LEFT JOIN Suppliers s ON i.SupplierID = s.SupplierID
                 WHERE sa.SaleDate BETWEEN @StartDate AND @EndDate
-                GROUP BY p.ProductName, c.CategoryName, s.SupplierName
+                GROUP BY p.ProductName, c.CategoryName, s.CompanyName
                 ORDER BY TotalSold DESC
-            "
+                "
+
 
                 ' Create the command with parameters to prevent SQL injection
                 Dim command As New SqlCommand(query, connection)
@@ -101,7 +103,7 @@ Public Class FastMovingProduct
                 ' Add columns to the DataGridView if not already added
                 If dgvFastMovingProduct.Columns.Count = 0 Then
                     dgvFastMovingProduct.Columns.Add("ProductName", "Product Name")
-                    dgvFastMovingProduct.Columns.Add("SupplierName", "Supplier")
+                    dgvFastMovingProduct.Columns.Add("CompanyName", "Supplier")
                     dgvFastMovingProduct.Columns.Add("CategoryName", "Category")
                     dgvFastMovingProduct.Columns.Add("TotalSold", "Total Sold")
                     dgvFastMovingProduct.Columns.Add("TotalSalesValue", "Total Sales Value")
@@ -111,7 +113,7 @@ Public Class FastMovingProduct
                 While reader.Read()
                     ' Add each row into the DataGridView
                     dgvFastMovingProduct.Rows.Add(reader("ProductName").ToString(),
-                                                   reader("SupplierName").ToString(),
+                                                   reader("CompanyName").ToString(),
                                                    reader("CategoryName").ToString(),
                                                    reader("TotalSold").ToString(),
                                                    reader("TotalSalesValue").ToString())
