@@ -454,12 +454,12 @@ Public Class Inventory
 
     Private Function GetCurrentUserRole() As String
         ' Show debugging information with available SessionData properties
-        Dim debugInfo As String = "SessionData Debug Info:" & vbCrLf & 
+        Dim debugInfo As String = "SessionData Debug Info:" & vbCrLf &
                                  "fullName: " & If(SessionData.fullName, "null") & vbCrLf &
                                  "role: " & If(SessionData.role, "null")
-        
+
         MessageBox.Show(debugInfo, "SessionData Debug", MessageBoxButtons.OK, MessageBoxIcon.Information)
-        
+
         ' If SessionData.role is already available, use it
         If Not String.IsNullOrEmpty(SessionData.role) Then
             Return SessionData.role

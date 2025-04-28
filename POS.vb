@@ -929,7 +929,7 @@ Public Class POS
         Dim cashAmount As Decimal = 0
         Decimal.TryParse(txtAmountPaid.Text, cashAmount)
         Dim changeAmount As Decimal = Convert.ToDecimal(lblChange.Text.Replace("₱", "").Trim())
-        Dim vatableSales As Decimal = subtotal - discount
+        Dim vatableSales As Decimal = subtotal - vat
 
         sb.AppendLine($"ITEMS COUNT:         {cart.Rows.Count}")
         sb.AppendLine($"SUBTOTAL:         ₱ {subtotal:#,##0.00}")
