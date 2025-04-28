@@ -58,6 +58,17 @@ Public Class Product
 
     End Sub
 
+    Private Function GetDefaultImage() As Byte()
+        Dim defaultImagePath As String = Path.Combine(Application.StartupPath, "Resources\noimage (1).jpeg")
+        If File.Exists(defaultImagePath) Then
+            Return File.ReadAllBytes(defaultImagePath)
+        Else
+            MessageBox.Show("Default placeholder image not found. Please ensure 'placeholder.png' exists in the Resources folder.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            Return Nothing
+        End If
+    End Function
+
+
     ' Helper method to ensure Edit column is the last column
     Private Sub EnsureEditColumnIsLast()
         ' Check if Edit column exists
@@ -284,20 +295,22 @@ Public Class Product
             Exit Sub
         End If
 
-        If picProductImage.Image Is Nothing Then
-            MessageBox.Show("Please attach an image for the product before proceeding.", "Missing Image", MessageBoxButtons.OK, MessageBoxIcon.Warning)
-            btnBrowseImage.Focus()
-            Exit Sub
-        End If
-
         Try
             ' Convert the image to a byte array
             Dim imageBytes As Byte() = Nothing
             If picProductImage.Image IsNot Nothing Then
+                ' User uploaded an image
                 Using ms As New MemoryStream()
                     picProductImage.Image.Save(ms, picProductImage.Image.RawFormat)
                     imageBytes = ms.ToArray()
                 End Using
+            Else
+                ' Use the default placeholder image
+                imageBytes = GetDefaultImage()
+                If imageBytes Is Nothing Then
+                    ' If the default image is missing, stop the process
+                    Exit Sub
+                End If
             End If
 
             ' Insert product into Products table
@@ -309,12 +322,10 @@ Public Class Product
                 command.Parameters.AddWithValue("@ProductName", txtProductName.Text)
                 command.Parameters.AddWithValue("@CategoryID", Convert.ToInt32(cboCategory.SelectedValue))
                 command.Parameters.AddWithValue("@Expiration", If(chkExpirationOption.Checked, "With Expiration", "Without Expiration"))
-                command.Parameters.AddWithValue("@Image", If(imageBytes IsNot Nothing, CType(imageBytes, Object), DBNull.Value))
+                command.Parameters.AddWithValue("@Image", imageBytes)
 
                 productId = Convert.ToInt32(command.ExecuteScalar())
             End Using
-
-            ' Removed the Inventory insertion logic here
 
             MessageBox.Show("Product has been successfully added!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information)
 

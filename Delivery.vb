@@ -44,7 +44,7 @@ Public Class Delivery
 
     ' Load Products into ComboBox
     Private Sub LoadProducts()
-        Dim query As String = "SELECT ProductID, ProductName FROM Products"
+        Dim query As String = "SELECT ProductID, ProductName, CategoryID, Expiration FROM Products"
         Dim dt As DataTable = ExecuteQuery(query)
 
         If dt IsNot Nothing AndAlso dt.Rows.Count > 0 Then
@@ -55,6 +55,7 @@ Public Class Delivery
             MessageBox.Show("No products found.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning)
         End If
     End Sub
+
 
     ' Form Load Event
     Private Sub Delivery_Load(sender As Object, e As EventArgs) Handles MyBase.Load
@@ -260,6 +261,17 @@ Public Class Delivery
             Dim productName As String = cmbProductID.Text ' Directly use the ProductName from ComboBox
             Dim currentUser As String = SessionData.fullName ' Get current user from SessionData
 
+            Dim selectedProductRow As DataRowView = CType(cmbProductID.SelectedItem, DataRowView)
+            Dim categoryID As Object = selectedProductRow("CategoryID")
+            Dim expiration As Object = selectedProductRow("Expiration")
+
+            ' Ensure CategoryID and Expiration are not null
+            If categoryID Is DBNull.Value OrElse expiration Is DBNull.Value Then
+                MessageBox.Show("The selected product does not have a valid CategoryID or Expiration.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                Return
+            End If
+
+            ' Add the product to the DataGridView
             Dim rowIndex As Integer = dgvPendingItems.Rows.Add()
             Dim newRow As DataGridViewRow = dgvPendingItems.Rows(rowIndex)
 
@@ -275,13 +287,9 @@ Public Class Delivery
             newRow.Cells("CostPrice").Value = costPrice
             newRow.Cells("ExpirationDate").Value = dtpExpirationDate.Value.Date
             newRow.Cells("DeliveryDate").Value = dtpDeliveryDate.Value.Date
-            newRow.Cells("UnitPrice").Value = sellingPrice ' Assuming UnitPrice is the same as SellingPrice
-            newRow.Cells("CategoryID").Value = DBNull.Value ' Or set the actual CategoryID value if available
-            newRow.Cells("Expiration").Value = dtpExpirationDate.Value.Date ' Or set the actual expiration date
-
-
-
-
+            newRow.Cells("UnitPrice").Value = sellingPrice
+            newRow.Cells("CategoryID").Value = categoryID ' Use the retrieved CategoryID
+            newRow.Cells("Expiration").Value = expiration ' Use the retrieved Expiration
 
             MessageBox.Show("Delivery added to Pending list.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information)
 
