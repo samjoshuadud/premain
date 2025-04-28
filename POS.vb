@@ -300,7 +300,7 @@ Public Class POS
         totalDiscount = discount
 
         ' Debug: Check if discount is applied correctly
-        Console.WriteLine("Discount: " & discount.ToString("₱ 0.00"))
+        'Console.WriteLine("Discount: " & discount.ToString("₱ 0.00"))
 
         ' Calculate the discounted subtotal: Subtotal - Discount
         Dim discountedSubtotal As Decimal = totalBeforeDiscount - totalDiscount
@@ -309,11 +309,11 @@ Public Class POS
         Dim finalTotal As Decimal = discountedSubtotal
 
         ' Display values with proper formatting and ₱ symbol
-        lblSubtotal.Text = "₱ " & totalBeforeDiscount.ToString("0.00")  ' Subtotal without discount or VAT
-        lblVAT.Text = "₱ " & totalVAT.ToString("0.00")                 ' Total VAT for all products (displayed separately)
-        lblDiscount.Text = "₱ " & totalDiscount.ToString("0.00")        ' Discount amount
-        lblTotal.Text = "₱ " & finalTotal.ToString("0.00")              ' Final total after discount (without VAT)
-        lblTotalItems.Text = cart.Rows.Count.ToString() ' Display total number of items
+        lblSubtotal.Text = "₱ " & totalBeforeDiscount.ToString("#,##0.00")  ' Subtotal without discount or VAT
+        lblVAT.Text = "₱ " & totalVAT.ToString("#,##0.00")                 ' Total VAT for all products (displayed separately)
+        lblDiscount.Text = "₱ " & totalDiscount.ToString("#,##0.00")        ' Discount amount
+        lblTotal.Text = "₱ " & finalTotal.ToString("#,##0.00")              ' Final total after discount (without VAT)
+        lblTotalItems.Text = cart.Rows.Count.ToString()
 
         ' Debug: Output the final total to console to check if it matches expectations
         Console.WriteLine("Final Total (without VAT included): " & finalTotal.ToString("₱ 0.00"))
@@ -850,13 +850,13 @@ Public Class POS
             sb.AppendLine("           ** WHOLESALE MODE **            ")
         End If
 
-        sb.AppendLine(New String("-"c, 40))
+        sb.AppendLine(New String("-"c, 44))
         sb.AppendLine($"Date: {DateTime.Now:MM/dd/yyyy HH:mm:ss}")
         sb.AppendLine($"{invoiceNumber}")
         sb.AppendLine($"{transNumber}")
-        sb.AppendLine(New String("-"c, 40))
+        sb.AppendLine(New String("-"c, 44))
         sb.AppendLine("ITEM                QTY   PRICE     TOTAL")
-        sb.AppendLine(New String("-"c, 40))
+        sb.AppendLine(New String("-"c, 44))
 
         ' Track if any wholesale discounts were applied
         Dim hasWholesaleDiscount As Boolean = False
@@ -885,7 +885,7 @@ Public Class POS
                     totalWholesaleDiscount += itemDiscount
 
                     ' Add a message for this product
-                    sb.AppendLine($"  * Wholesale discount applied: ₱{itemDiscount:0.00}")
+                    sb.AppendLine($"  * Wholesale discount applied: ₱{itemDiscount:#,##0.00}")
                 End If
             End If
 
@@ -898,15 +898,15 @@ Public Class POS
 
             ' Format quantity, price, and total with fixed widths
             Dim quantityStr As String = quantity.ToString().PadLeft(4, " "c)
-            Dim unitPriceStr As String = unitPrice.ToString("0.00").PadLeft(8, " "c)
-            Dim totalPriceStr As String = totalPrice.ToString("0.00").PadLeft(9, " "c)
+            Dim unitPriceStr As String = unitPrice.ToString("#,##0.00").PadLeft(8, " "c)
+            Dim totalPriceStr As String = totalPrice.ToString("#,##0.00").PadLeft(9, " "c)
 
             ' Append the formatted line to the receipt
             sb.AppendLine($"{shortName}{quantityStr} {unitPriceStr} {totalPriceStr}")
         Next
 
         ' Summary section
-        sb.AppendLine(New String("-"c, 40))
+        sb.AppendLine(New String("-"c, 44))
 
         Dim subtotal As Decimal = Convert.ToDecimal(lblSubtotal.Text.Replace("₱", "").Trim())
         Dim discount As Decimal = Convert.ToDecimal(lblDiscount.Text.Replace("₱", "").Trim())
@@ -915,25 +915,27 @@ Public Class POS
         Dim cashAmount As Decimal = 0
         Decimal.TryParse(txtAmountPaid.Text, cashAmount)
         Dim changeAmount As Decimal = Convert.ToDecimal(lblChange.Text.Replace("₱", "").Trim())
+        Dim vatableSales As Decimal = subtotal - discount
 
         sb.AppendLine($"ITEMS COUNT:         {cart.Rows.Count}")
-        sb.AppendLine($"SUBTOTAL:         ₱ {subtotal:0.00}")
+        sb.AppendLine($"SUBTOTAL:         ₱ {subtotal:#,##0.00}")
 
         ' Only show discount if it's greater than 0
         If discount > 0 Then
             Dim discountRate As Decimal = GetCurrentDiscount()
-            sb.AppendLine($"DISCOUNT ({discountRate}%): ₱ {discount:0.00}")
+            sb.AppendLine($"DISCOUNT ({discountRate}%): ₱ {discount:#,##0.00}")
         End If
 
         ' Add wholesale discount information if any wholesale items exist
         If hasWholesaleDiscount Then
-            sb.AppendLine($"WHOLESALE SAVINGS:  ₱ {totalWholesaleDiscount:0.00}")
+            sb.AppendLine($"WHOLESALE SAVINGS:  ₱ {totalWholesaleDiscount:#,##0.00}")
         End If
 
-        sb.AppendLine($"VAT (12%):         ₱ {vat:0.00}")
-        sb.AppendLine($"TOTAL:             ₱ {totalDue:0.00}")
-        sb.AppendLine($"CASH:              ₱ {cashAmount:0.00}")
-        sb.AppendLine($"CHANGE:            ₱ {changeAmount:0.00}")
+        sb.AppendLine($"VATABLE SALES:     ₱ {vatableSales:#,##0.00}")
+        sb.AppendLine($"VAT (12%):         ₱ {vat:#,##0.00}")
+        sb.AppendLine($"TOTAL:             ₱ {totalDue:#,##0.00}")
+        sb.AppendLine($"CASH:              ₱ {cashAmount:#,##0.00}")
+        sb.AppendLine($"CHANGE:            ₱ {changeAmount:#,##0.00}")
         sb.AppendLine(New String("-"c, 40))
 
         ' Additional information section
