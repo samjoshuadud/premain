@@ -90,7 +90,7 @@ Partial Class User
         ' 
         Label2.Anchor = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Right
         Label2.BackColor = Color.Transparent
-        Label2.Font = New Font("Segoe UI", 11F, FontStyle.Bold)
+        Label2.Font = New Font("Segoe UI", 11.0F, FontStyle.Bold)
         Label2.ForeColor = SystemColors.ActiveCaptionText
         Label2.Location = New Point(28, 400)
         Label2.Margin = New Padding(4, 0, 4, 0)
@@ -103,7 +103,7 @@ Partial Class User
         ' 
         lblAddress.Anchor = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Right
         lblAddress.BackColor = Color.Transparent
-        lblAddress.Font = New Font("Segoe UI", 11F, FontStyle.Bold)
+        lblAddress.Font = New Font("Segoe UI", 11.0F, FontStyle.Bold)
         lblAddress.ForeColor = SystemColors.ActiveCaptionText
         lblAddress.Location = New Point(28, 444)
         lblAddress.Margin = New Padding(4, 0, 4, 0)
@@ -116,7 +116,7 @@ Partial Class User
         ' 
         lblEmail.Anchor = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Right
         lblEmail.BackColor = Color.Transparent
-        lblEmail.Font = New Font("Segoe UI", 11F, FontStyle.Bold)
+        lblEmail.Font = New Font("Segoe UI", 11.0F, FontStyle.Bold)
         lblEmail.ForeColor = SystemColors.ActiveCaptionText
         lblEmail.Location = New Point(30, 315)
         lblEmail.Margin = New Padding(4, 0, 4, 0)
@@ -129,7 +129,7 @@ Partial Class User
         ' 
         lblRole.Anchor = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Right
         lblRole.BackColor = Color.Transparent
-        lblRole.Font = New Font("Segoe UI", 11F, FontStyle.Bold)
+        lblRole.Font = New Font("Segoe UI", 11.0F, FontStyle.Bold)
         lblRole.ForeColor = SystemColors.ActiveCaptionText
         lblRole.Location = New Point(28, 355)
         lblRole.Margin = New Padding(4, 0, 4, 0)
@@ -141,7 +141,7 @@ Partial Class User
         ' lblRequiredFields
         ' 
         lblRequiredFields.AutoSize = True
-        lblRequiredFields.Font = New Font("Segoe UI", 9F, FontStyle.Italic)
+        lblRequiredFields.Font = New Font("Segoe UI", 9.0F, FontStyle.Italic)
         lblRequiredFields.ForeColor = Color.Red
         lblRequiredFields.Location = New Point(258, 58)
         lblRequiredFields.Margin = New Padding(4, 0, 4, 0)
@@ -153,7 +153,7 @@ Partial Class User
         ' txtAge
         ' 
         txtAge.BorderStyle = BorderStyle.FixedSingle
-        txtAge.Font = New Font("Segoe UI", 10F)
+        txtAge.Font = New Font("Segoe UI", 10.0F)
         txtAge.Location = New Point(256, 229)
         txtAge.Margin = New Padding(4, 5, 4, 5)
         txtAge.MaxLength = 3
@@ -164,7 +164,7 @@ Partial Class User
         ' txtFirstName
         ' 
         txtFirstName.BorderStyle = BorderStyle.FixedSingle
-        txtFirstName.Font = New Font("Segoe UI", 10F)
+        txtFirstName.Font = New Font("Segoe UI", 10.0F)
         txtFirstName.Location = New Point(257, 99)
         txtFirstName.Margin = New Padding(4, 5, 4, 5)
         txtFirstName.Name = "txtFirstName"
@@ -174,7 +174,7 @@ Partial Class User
         ' txtMiddleInitial
         ' 
         txtMiddleInitial.BorderStyle = BorderStyle.FixedSingle
-        txtMiddleInitial.Font = New Font("Segoe UI", 10F)
+        txtMiddleInitial.Font = New Font("Segoe UI", 10.0F)
         txtMiddleInitial.Location = New Point(256, 187)
         txtMiddleInitial.Margin = New Padding(4, 5, 4, 5)
         txtMiddleInitial.Name = "txtMiddleInitial"
@@ -184,7 +184,7 @@ Partial Class User
         ' lblFirstName
         ' 
         lblFirstName.BackColor = Color.Transparent
-        lblFirstName.Font = New Font("Segoe UI", 11F, FontStyle.Bold)
+        lblFirstName.Font = New Font("Segoe UI", 11.0F, FontStyle.Bold)
         lblFirstName.ForeColor = SystemColors.ActiveCaptionText
         lblFirstName.Location = New Point(29, 99)
         lblFirstName.Margin = New Padding(4, 0, 4, 0)
@@ -196,7 +196,7 @@ Partial Class User
         ' lblMiddleInitial
         ' 
         lblMiddleInitial.BackColor = Color.Transparent
-        lblMiddleInitial.Font = New Font("Segoe UI", 11F, FontStyle.Bold)
+        lblMiddleInitial.Font = New Font("Segoe UI", 11.0F, FontStyle.Bold)
         lblMiddleInitial.ForeColor = SystemColors.ActiveCaptionText
         lblMiddleInitial.Location = New Point(30, 188)
         lblMiddleInitial.Margin = New Padding(4, 0, 4, 0)
@@ -208,7 +208,7 @@ Partial Class User
         ' lblLastName
         ' 
         lblLastName.BackColor = Color.Transparent
-        lblLastName.Font = New Font("Segoe UI", 11F, FontStyle.Bold)
+        lblLastName.Font = New Font("Segoe UI", 11.0F, FontStyle.Bold)
         lblLastName.ForeColor = SystemColors.ActiveCaptionText
         lblLastName.Location = New Point(30, 143)
         lblLastName.Margin = New Padding(4, 0, 4, 0)
@@ -220,7 +220,7 @@ Partial Class User
         ' txtLastName
         ' 
         txtLastName.BorderStyle = BorderStyle.FixedSingle
-        txtLastName.Font = New Font("Segoe UI", 10F)
+        txtLastName.Font = New Font("Segoe UI", 10.0F)
         txtLastName.Location = New Point(257, 143)
         txtLastName.Margin = New Padding(4, 5, 4, 5)
         txtLastName.Name = "txtLastName"
@@ -230,7 +230,7 @@ Partial Class User
         ' lblAge
         ' 
         lblAge.BackColor = Color.Transparent
-        lblAge.Font = New Font("Segoe UI", 11F, FontStyle.Bold)
+        lblAge.Font = New Font("Segoe UI", 11.0F, FontStyle.Bold)
         lblAge.ForeColor = SystemColors.ActiveCaptionText
         lblAge.Location = New Point(30, 228)
         lblAge.Margin = New Padding(4, 0, 4, 0)
@@ -242,7 +242,7 @@ Partial Class User
         ' lblGender
         ' 
         lblGender.BackColor = Color.Transparent
-        lblGender.Font = New Font("Segoe UI", 11F, FontStyle.Bold)
+        lblGender.Font = New Font("Segoe UI", 11.0F, FontStyle.Bold)
         lblGender.ForeColor = SystemColors.ActiveCaptionText
         lblGender.Location = New Point(30, 275)
         lblGender.Margin = New Padding(4, 0, 4, 0)
@@ -254,7 +254,7 @@ Partial Class User
         ' cbGender
         ' 
         cbGender.DropDownStyle = ComboBoxStyle.DropDownList
-        cbGender.Font = New Font("Segoe UI", 10F)
+        cbGender.Font = New Font("Segoe UI", 10.0F)
         cbGender.FormattingEnabled = True
         cbGender.Items.AddRange(New Object() {"Male", "Female"})
         cbGender.Location = New Point(256, 273)
@@ -304,7 +304,7 @@ Partial Class User
         ' txtAddress
         ' 
         txtAddress.BorderStyle = BorderStyle.FixedSingle
-        txtAddress.Font = New Font("Segoe UI", 10F)
+        txtAddress.Font = New Font("Segoe UI", 10.0F)
         txtAddress.Location = New Point(256, 482)
         txtAddress.Margin = New Padding(4, 5, 4, 5)
         txtAddress.MaxLength = 3
@@ -315,7 +315,7 @@ Partial Class User
         ' txtEmailAddress
         ' 
         txtEmailAddress.BorderStyle = BorderStyle.FixedSingle
-        txtEmailAddress.Font = New Font("Segoe UI", 10F)
+        txtEmailAddress.Font = New Font("Segoe UI", 10.0F)
         txtEmailAddress.Location = New Point(258, 316)
         txtEmailAddress.Margin = New Padding(4, 5, 4, 5)
         txtEmailAddress.MaxLength = 3
@@ -327,7 +327,7 @@ Partial Class User
         ' 
         btnDelete.BackColor = SystemColors.ActiveCaptionText
         btnDelete.FlatStyle = FlatStyle.Flat
-        btnDelete.Font = New Font("Segoe UI Semibold", 9F, FontStyle.Bold)
+        btnDelete.Font = New Font("Segoe UI Semibold", 9.0F, FontStyle.Bold)
         btnDelete.ForeColor = SystemColors.ButtonHighlight
         btnDelete.Location = New Point(575, 608)
         btnDelete.Margin = New Padding(5, 6, 5, 6)
@@ -341,7 +341,7 @@ Partial Class User
         ' 
         btnReset.BackColor = SystemColors.ControlDarkDark
         btnReset.FlatStyle = FlatStyle.Flat
-        btnReset.Font = New Font("Segoe UI Semibold", 9F, FontStyle.Bold)
+        btnReset.Font = New Font("Segoe UI Semibold", 9.0F, FontStyle.Bold)
         btnReset.ForeColor = SystemColors.ButtonHighlight
         btnReset.Location = New Point(734, 608)
         btnReset.Margin = New Padding(5, 6, 5, 6)
@@ -355,7 +355,7 @@ Partial Class User
         ' 
         btnEdit.BackColor = SystemColors.ActiveCaptionText
         btnEdit.FlatStyle = FlatStyle.Flat
-        btnEdit.Font = New Font("Segoe UI Semibold", 9F, FontStyle.Bold)
+        btnEdit.Font = New Font("Segoe UI Semibold", 9.0F, FontStyle.Bold)
         btnEdit.ForeColor = SystemColors.ButtonHighlight
         btnEdit.Location = New Point(416, 608)
         btnEdit.Margin = New Padding(5, 6, 5, 6)
@@ -369,7 +369,7 @@ Partial Class User
         ' 
         btnAdd.BackColor = SystemColors.ActiveCaptionText
         btnAdd.FlatStyle = FlatStyle.Flat
-        btnAdd.Font = New Font("Segoe UI Semibold", 9F, FontStyle.Bold)
+        btnAdd.Font = New Font("Segoe UI Semibold", 9.0F, FontStyle.Bold)
         btnAdd.ForeColor = SystemColors.ButtonHighlight
         btnAdd.Location = New Point(257, 608)
         btnAdd.Margin = New Padding(5, 6, 5, 6)
@@ -383,7 +383,7 @@ Partial Class User
         ' 
         Label4.Anchor = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Right
         Label4.BackColor = Color.Transparent
-        Label4.Font = New Font("Segoe UI", 11F, FontStyle.Bold)
+        Label4.Font = New Font("Segoe UI", 11.0F, FontStyle.Bold)
         Label4.ForeColor = SystemColors.ActiveCaptionText
         Label4.Location = New Point(28, 483)
         Label4.Margin = New Padding(4, 0, 4, 0)
@@ -395,7 +395,7 @@ Partial Class User
         ' cbRole
         ' 
         cbRole.DropDownStyle = ComboBoxStyle.DropDownList
-        cbRole.Font = New Font("Segoe UI", 10F)
+        cbRole.Font = New Font("Segoe UI", 10.0F)
         cbRole.FormattingEnabled = True
         cbRole.Items.AddRange(New Object() {"Admin" & vbTab, "Staff", "Cashier"})
         cbRole.Location = New Point(258, 359)
@@ -407,7 +407,7 @@ Partial Class User
         ' txtConfirmPassword
         ' 
         txtConfirmPassword.BorderStyle = BorderStyle.FixedSingle
-        txtConfirmPassword.Font = New Font("Segoe UI", 10F)
+        txtConfirmPassword.Font = New Font("Segoe UI", 10.0F)
         txtConfirmPassword.Location = New Point(257, 563)
         txtConfirmPassword.Margin = New Padding(4, 5, 4, 5)
         txtConfirmPassword.MaxLength = 3
@@ -418,7 +418,7 @@ Partial Class User
         ' txtPassword
         ' 
         txtPassword.BorderStyle = BorderStyle.FixedSingle
-        txtPassword.Font = New Font("Segoe UI", 10F)
+        txtPassword.Font = New Font("Segoe UI", 10.0F)
         txtPassword.Location = New Point(256, 523)
         txtPassword.Margin = New Padding(4, 5, 4, 5)
         txtPassword.MaxLength = 3
@@ -430,7 +430,7 @@ Partial Class User
         ' 
         Label5.Anchor = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Right
         Label5.BackColor = Color.Transparent
-        Label5.Font = New Font("Segoe UI", 11F, FontStyle.Bold)
+        Label5.Font = New Font("Segoe UI", 11.0F, FontStyle.Bold)
         Label5.ForeColor = SystemColors.ActiveCaptionText
         Label5.Location = New Point(30, 564)
         Label5.Margin = New Padding(4, 0, 4, 0)
@@ -443,7 +443,7 @@ Partial Class User
         ' 
         Label1.Anchor = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Right
         Label1.BackColor = Color.Transparent
-        Label1.Font = New Font("Segoe UI", 11F, FontStyle.Bold)
+        Label1.Font = New Font("Segoe UI", 11.0F, FontStyle.Bold)
         Label1.ForeColor = SystemColors.ActiveCaptionText
         Label1.Location = New Point(28, 524)
         Label1.Margin = New Padding(4, 0, 4, 0)
@@ -455,7 +455,7 @@ Partial Class User
         ' txtUsername
         ' 
         txtUsername.BorderStyle = BorderStyle.FixedSingle
-        txtUsername.Font = New Font("Segoe UI", 10F)
+        txtUsername.Font = New Font("Segoe UI", 10.0F)
         txtUsername.Location = New Point(258, 444)
         txtUsername.Margin = New Padding(4, 5, 4, 5)
         txtUsername.MaxLength = 3
@@ -466,7 +466,7 @@ Partial Class User
         ' txtPhoneNumber
         ' 
         txtPhoneNumber.BorderStyle = BorderStyle.FixedSingle
-        txtPhoneNumber.Font = New Font("Segoe UI", 10F)
+        txtPhoneNumber.Font = New Font("Segoe UI", 10.0F)
         txtPhoneNumber.Location = New Point(257, 405)
         txtPhoneNumber.Margin = New Padding(4, 5, 4, 5)
         txtPhoneNumber.MaxLength = 3
@@ -497,7 +497,7 @@ Partial Class User
         ' 
         ' txtSearch
         ' 
-        txtSearch.Font = New Font("Segoe UI", 12F)
+        txtSearch.Font = New Font("Segoe UI", 12.0F)
         txtSearch.Location = New Point(1324, 37)
         txtSearch.Name = "txtSearch"
         txtSearch.PlaceholderText = " 🔍 Search User"
@@ -533,7 +533,7 @@ Partial Class User
         ' Label3
         ' 
         Label3.AutoSize = True
-        Label3.Font = New Font("Segoe UI Black", 12F, FontStyle.Bold)
+        Label3.Font = New Font("Segoe UI Black", 12.0F, FontStyle.Bold)
         Label3.ForeColor = Color.White
         Label3.Location = New Point(4, 15)
         Label3.Margin = New Padding(4, 0, 4, 0)
@@ -554,7 +554,7 @@ Partial Class User
         ' 
         ' User
         ' 
-        AutoScaleDimensions = New SizeF(10F, 25F)
+        AutoScaleDimensions = New SizeF(10.0F, 25.0F)
         AutoScaleMode = AutoScaleMode.Font
         BackColor = Color.WhiteSmoke
         ClientSize = New Size(1758, 1018)
