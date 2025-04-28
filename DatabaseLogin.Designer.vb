@@ -35,6 +35,7 @@ Partial Class DatabaseLogin
         txtip.Font = New Font("Segoe UI", 12F)
         txtip.Location = New Point(90, 81)
         txtip.Name = "txtip"
+        txtip.PlaceholderText = "Enter IP Address"
         txtip.Size = New Size(303, 39)
         txtip.TabIndex = 0
         ' 
@@ -43,6 +44,7 @@ Partial Class DatabaseLogin
         txtuser.Font = New Font("Segoe UI", 12F)
         txtuser.Location = New Point(90, 126)
         txtuser.Name = "txtuser"
+        txtuser.PlaceholderText = "Enter Databased Username"
         txtuser.Size = New Size(303, 39)
         txtuser.TabIndex = 1
         ' 
@@ -51,18 +53,21 @@ Partial Class DatabaseLogin
         txtpass.Font = New Font("Segoe UI", 12F)
         txtpass.Location = New Point(90, 171)
         txtpass.Name = "txtpass"
+        txtpass.PlaceholderText = "Enter Databased Password"
         txtpass.Size = New Size(303, 39)
         txtpass.TabIndex = 2
         ' 
         ' Button1
         ' 
+        Button1.BackColor = SystemColors.ActiveCaptionText
         Button1.FlatStyle = FlatStyle.Flat
+        Button1.ForeColor = SystemColors.ButtonHighlight
         Button1.Location = New Point(90, 229)
         Button1.Name = "Button1"
         Button1.Size = New Size(303, 58)
         Button1.TabIndex = 3
         Button1.Text = "CONNECT"
-        Button1.UseVisualStyleBackColor = True
+        Button1.UseVisualStyleBackColor = False
         ' 
         ' btnCLose
         ' 
