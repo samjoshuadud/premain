@@ -15,7 +15,7 @@ Public Class Login
     Private Sub Login_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         ' Initialize database connection form
         dbLoginForm = New DatabaseLogin()
-        
+
         ' Clear session data when login form is loaded
         SessionData.CurrentUserId = 0
         SessionData.role = String.Empty
@@ -23,9 +23,25 @@ Public Class Login
 
         ' Set the password field to hide text by default
         txtPassword.PasswordChar = "*" ' Hide the password characters
-        ' Optionally, you can set the toggle button's default text or icon here.
-        btnTogglePassword.Text = "Show Password" ' Or set an icon if needed
-        
+        btnTogglePassword.Text = "Show Password" ' Default text for toggle button
+
+        ' Test the database connection
+        Dim connectionStatus As String = AppConfig.ValidateConnection()
+        If connectionStatus <> "Success" Then
+            ' Show error message and prompt user to update connection settings
+            MessageBox.Show(connectionStatus & vbCrLf & "Please update your database connection settings!.",
+                        "Connection Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            dbLoginForm.ShowDialog()
+
+            ' Re-test the connection after updating settings
+            connectionStatus = AppConfig.ValidateConnection()
+            If connectionStatus <> "Success" Then
+                MessageBox.Show("Unable to establish a connection. The application will now close.",
+                            "Connection Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                Application.Exit()
+            End If
+        End If
+
         ' Check if there's an admin user in the database
         CheckForAdminUser()
     End Sub

@@ -1502,9 +1502,9 @@ Public Class POS
         toolTip.SetToolTip(txtAmountPaid, "Enter the amount paid by customer")
 
         ' Add tooltip for wholesale mode checkbox
-        Dim chkWholesale As CheckBox = DirectCast(Me.Controls("chkWholesaleMode"), CheckBox)
-        toolTip.SetToolTip(chkWholesale, $"Force wholesale pricing for all items regardless of quantity. " &
-                                        $"(Normally wholesale pricing is automatically applied when ordering {wholesaleMinimumQuantity}+ of an item)")
+        'Dim chkWholesale As CheckBox = DirectCast(Me.Controls("chkWholesaleMode"), CheckBox)
+        'toolTip.SetToolTip(chkWholesale, $"Force wholesale pricing for all items regardless of quantity. " &
+        '                                $"(Normally wholesale pricing is automatically applied when ordering {wholesaleMinimumQuantity}+ of an item)")
 
         ' Add tooltips for keyboard shortcuts
         Dim shortcutsLabel As New Label()
@@ -1517,12 +1517,12 @@ Public Class POS
         shortcutsLabel.Cursor = Cursors.Help
         Me.Controls.Add(shortcutsLabel)
 
-        toolTip.SetToolTip(shortcutsLabel, "F3: New Transaction" & vbCrLf &
-                                          "F3: Payment Screen" & vbCrLf &
-                                          "F4: Discount Screen" & vbCrLf &
-                                          "F5: Quantity Screen" & vbCrLf &
-                                          "F6: Toggle Manual Wholesale Mode" & vbCrLf &
-                                          "ESC: Close any open panel")
+        toolTip.SetToolTip(shortcutsLabel, "F2: New Transaction" & vbCrLf &
+                                       "F3: Payment Screen" & vbCrLf &
+                                       "F4: Discount Screen" & vbCrLf &
+                                       "F5: Quantity Screen" & vbCrLf &
+                                       "ESC: Close any open panel")
+
     End Sub
 
     ' Add this method to enhance the visual styling of the form
@@ -1818,13 +1818,13 @@ Public Class POS
         End If
 
         ' F6 - Toggle Manual Wholesale Mode
-        If keyData = Keys.F6 Then
-            Dim chkWholesale As CheckBox = DirectCast(Me.Controls("chkWholesaleMode"), CheckBox)
-            chkWholesale.Checked = Not chkWholesale.Checked
-            Return True
-        End If
+        'If keyData = Keys.F6 Then
+        ''    Dim chkWholesale As CheckBox = DirectCast(Me.Controls("chkWholesaleMode"), CheckBox)
+        ''    chkWholesale.Checked = Not chkWholesale.Checked
+        ''    Return True
+        ''End If
 
-        ' Escape - Close open panels
+        ' ESC - Close any open panel
         If keyData = Keys.Escape Then
             PanelPay.Visible = False
             PanelQuantity.Visible = False
@@ -1835,6 +1835,7 @@ Public Class POS
 
         Return MyBase.ProcessCmdKey(msg, keyData)
     End Function
+
 
     ' Add visual feedback when a product is added to the cart
     Private Sub HighlightNewItem()
@@ -1886,21 +1887,21 @@ Public Class POS
 
     ' Add wholesale mode toggle checkbox
     Private Sub AddWholesaleModeToggle()
-        Dim chkWholesale As New CheckBox With {
-            .Name = "chkWholesaleMode",
-            .Text = "Manual Wholesale Mode (F6)",
-            .AutoSize = True,
-            .Font = New Font("Segoe UI", 10, FontStyle.Bold),
-            .ForeColor = Color.Blue,
-            .Location = New Point(550, 45),
-            .Visible = True
-        }
+        'Dim chkWholesale As New CheckBox With {
+        '    .Name = "chkWholesaleMode",
+        '    .Text = "Manual Wholesale Mode (F6)",
+        '    .AutoSize = True,
+        '    .Font = New Font("Segoe UI", 10, FontStyle.Bold),
+        '    .ForeColor = Color.Blue,
+        '    .Location = New Point(550, 45),
+        '    .Visible = True
+        '}
 
-        ' Add event handler for checkbox state change
-        AddHandler chkWholesale.CheckedChanged, AddressOf WholesaleModeToggle_CheckedChanged
+        '' Add event handler for checkbox state change
+        'AddHandler chkWholesale.CheckedChanged, AddressOf WholesaleModeToggle_CheckedChanged
 
-        ' Add to the form
-        Me.Controls.Add(chkWholesale)
+        '' Add to the form
+        'Me.Controls.Add(chkWholesale)
 
         ' Add a label to display wholesale discount info
         Dim lblWholesaleInfo As New Label With {
@@ -1917,37 +1918,37 @@ Public Class POS
     End Sub
 
     ' Event handler for wholesale mode toggle
-    Private Sub WholesaleModeToggle_CheckedChanged(sender As Object, e As EventArgs)
-        Dim chkWholesale As CheckBox = DirectCast(sender, CheckBox)
-        isWholesaleMode = chkWholesale.Checked
+    'Private Sub WholesaleModeToggle_CheckedChanged(sender As Object, e As EventArgs)
+    '    Dim chkWholesale As CheckBox = DirectCast(sender, CheckBox)
+    '    isWholesaleMode = chkWholesale.Checked
 
-        ' Show/hide wholesale info label
-        Dim lblWholesaleInfo As Label = DirectCast(Me.Controls("lblWholesaleInfo"), Label)
-        lblWholesaleInfo.Visible = isWholesaleMode
+    '    ' Show/hide wholesale info label
+    '    Dim lblWholesaleInfo As Label = DirectCast(Me.Controls("lblWholesaleInfo"), Label)
+    '    lblWholesaleInfo.Visible = isWholesaleMode
 
-        ' Update cart if items already exist
-        If cart IsNot Nothing AndAlso cart.Rows.Count > 0 Then
-            If MessageBox.Show("Switching pricing mode will update all items in the cart. Continue?",
-                              "Mode Change", MessageBoxButtons.YesNo, MessageBoxIcon.Question) = DialogResult.Yes Then
-                UpdateCartPrices()
-            Else
-                ' Revert the checkbox if user cancels
-                chkWholesale.Checked = Not isWholesaleMode
-                isWholesaleMode = Not isWholesaleMode
-            End If
-        End If
+    '    ' Update cart if items already exist
+    '    If cart IsNot Nothing AndAlso cart.Rows.Count > 0 Then
+    '        If MessageBox.Show("Switching pricing mode will update all items in the cart. Continue?",
+    '                          "Mode Change", MessageBoxButtons.YesNo, MessageBoxIcon.Question) = DialogResult.Yes Then
+    '            UpdateCartPrices()
+    '        Else
+    '            ' Revert the checkbox if user cancels
+    '            chkWholesale.Checked = Not isWholesaleMode
+    '            isWholesaleMode = Not isWholesaleMode
+    '        End If
+    '    End If
 
-        ' Update UI to reflect wholesale mode
-        If isWholesaleMode Then
-            ' Change form title to indicate wholesale mode
-            Me.Text = "Point of Sale - WHOLESALE MODE"
-            Panel1.BackColor = Color.LightYellow
-        Else
-            ' Reset form title
-            Me.Text = "Point of Sale"
-            Panel1.BackColor = Color.White
-        End If
-    End Sub
+    '    ' Update UI to reflect wholesale mode
+    '    If isWholesaleMode Then
+    '        ' Change form title to indicate wholesale mode
+    '        Me.Text = "Point of Sale - WHOLESALE MODE"
+    '        Panel1.BackColor = Color.LightYellow
+    '    Else
+    '        ' Reset form title
+    '        Me.Text = "Point of Sale"
+    '        Panel1.BackColor = Color.White
+    '    End If
+    'End Sub
 
     ' Update prices in cart when switching between retail and wholesale mode
     Private Sub UpdateCartPrices()
