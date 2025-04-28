@@ -33,11 +33,11 @@ Public Class Main
 
         ' Set the window size and position
         SetFormSizeAndPosition()
-        
+
         ' Set the main panel to be properly anchored and sized
-        MainPanel.Dock = DockStyle.Fill
-        MainPanel.Visible = False
-        
+        'MainPanel.Dock = DockStyle.Fill
+        'MainPanel.Visible = False
+
         SetupEventHandlers()
         LoadUI()
 
@@ -68,16 +68,13 @@ Public Class Main
         If Me.Width > workingArea.Width Then Me.Width = workingArea.Width
         If Me.Height > workingArea.Height Then Me.Height = workingArea.Height
     End Sub
-    
+
     ' Handle form resize event to maintain proper layout
     Private Sub Main_Resize(sender As Object, e As EventArgs)
         ' Ensure the ButtonPanel fills the form
-        ButtonPanel.Width = Me.ClientSize.Width - ButtonPanel.Left
-        ButtonPanel.Height = Me.ClientSize.Height - ButtonPanel.Top
-        
-        ' Refresh layout to ensure child controls are properly sized
+        ' Removed redundant resizing logic as ButtonPanel is already anchored to all sides
         ButtonPanel.PerformLayout()
-        
+
         ' If MainPanel is visible, ensure proper layout of its contents
         If MainPanel.Visible AndAlso MainPanel.Controls.Count > 0 Then
             Dim childForm As Form = TryCast(MainPanel.Controls(0), Form)
@@ -105,12 +102,7 @@ Public Class Main
         LoadTotalProducts()
 
         ' Load total sales for the day
-        'LoadTotalSales()
-
-        ' Load the quantity in stock
         LoadQuantityInStock()
-
-        ' Load the Critcal in stock
         LoadCriticalItems()
 
         ' Set background color
@@ -136,9 +128,7 @@ Public Class Main
         toolTip.SetToolTip(btnLogOut, "Log Out - Click To Log Out From The System.")
 
         ' Ensure Panel5 is visible initially and MainPanel is hidden
-        Panel5.Visible = True
-        Panel5.Dock = DockStyle.Fill
-        MainPanel.Visible = False
+        ' Removed redundant visibility settings as they are already defined in the designer
     End Sub
 
     ' Method to reload all UI components and data
