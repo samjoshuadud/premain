@@ -2,11 +2,14 @@
 Imports System.IO
 Imports System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel
 
+
 Public Class Product
     ' Connection string to connect to the SQL database
     Private connectionString As String = AppConfig.ConnectionString
     Private productImage As Byte() = Nothing ' To hold the selected image as a byte array
     Private editColumn As DataGridViewImageColumn
+
+
 
     Private selectedProductID As Integer = -1 ' Track selected product ID for editing and deletion
 
@@ -278,6 +281,12 @@ Public Class Product
         ElseIf cboCategory.SelectedIndex = -1 Then
             MessageBox.Show("Please select a category.", "Missing Information", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             cboCategory.Focus()
+            Exit Sub
+        End If
+
+        If picProductImage.Image Is Nothing Then
+            MessageBox.Show("Please attach an image for the product before proceeding.", "Missing Image", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            btnBrowseImage.Focus()
             Exit Sub
         End If
 

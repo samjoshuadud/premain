@@ -328,11 +328,23 @@ Public Class POS
     Private finalProcessedTotal As Decimal = 0
 
     Private Sub AddToCart(barcode As String)
-        If String.IsNullOrWhiteSpace(barcode) Then Return
+        If String.IsNullOrWhiteSpace(barcode) Then
+            MessageBox.Show("Please enter a valid barcode.", "Invalid Barcode", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+            Return
+        End If
 
         If cart Is Nothing Then InitializeCart()
 
         Try
+            '' Validate the barcode format (e.g., numeric and specific length)
+            'If Not IsNumeric(barcode) OrElse barcode.Length <> 12 Then
+            '    MessageBox.Show("Invalid barcode format. Barcodes must be 12 digits long.", "Invalid Barcode", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            '    txtBarcode.Clear()
+            '    txtBarcode.Focus()
+            '    Return
+            'End If
+
+            ' Query the database for the product
             Dim query As String = "SELECT i.Barcode, i.UnitPrice, i.QuantityInStock, " &
                               "p.ProductName, i.WholesaleDiscount " &
                               "FROM Inventory i " &
@@ -342,11 +354,15 @@ Public Class POS
             Dim parameters As SqlParameter() = {New SqlParameter("@barcode", barcode)}
             Dim productTable As DataTable = dbHelper.ExecuteQuery(query, parameters)
 
+            ' Check if the product exists
             If productTable.Rows.Count = 0 Then
-                MessageBox.Show("Product not found.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                MessageBox.Show("Product not found for the given barcode.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                txtBarcode.Clear()
+                txtBarcode.Focus()
                 Return
             End If
 
+            ' Extract product details
             Dim productName As String = productTable.Rows(0)("ProductName").ToString()
             Dim unitPrice As Decimal = Convert.ToDecimal(productTable.Rows(0)("UnitPrice"))
             Dim wholesaleDiscount As Decimal = 0
@@ -362,25 +378,14 @@ Public Class POS
                 manualQuantity = Convert.ToInt32(txtQuantity.Text)
             End If
 
-            Dim finalPrice As Decimal = unitPrice
-            Dim wholesaleApplied As Boolean = False
-
-            If (isWholesaleMode AndAlso manualQuantity >= wholesaleMinimumQuantity) OrElse
-           (autoApplyWholesale AndAlso manualQuantity >= wholesaleMinimumQuantity) Then
-                finalPrice = unitPrice * (1 - (wholesaleDiscount / 100))
-                wholesaleApplied = True
-            ElseIf isWholesaleMode AndAlso manualQuantity < wholesaleMinimumQuantity Then
-                MessageBox.Show($"Wholesale pricing requires a minimum of {wholesaleMinimumQuantity} items. " &
-                            $"Regular pricing will be applied for {manualQuantity} items.",
-                            "Wholesale Minimum Not Met", MessageBoxButtons.OK, MessageBoxIcon.Information)
-            End If
-
+            ' Check stock availability
             If manualQuantity > availableQuantity Then
                 MessageBox.Show("Insufficient stock. Only " & availableQuantity.ToString() & " items are available.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
                 txtQuantity.Clear()
                 Return
             End If
 
+            ' Add or update the product in the cart
             Dim existingRow = cart.AsEnumerable().FirstOrDefault(Function(row) row.Field(Of String)("Barcode") = barcode)
             If existingRow IsNot Nothing Then
                 Dim currentQuantity As Integer = existingRow("Quantity")
@@ -391,27 +396,14 @@ Public Class POS
                     Return
                 End If
 
-                Dim currentUnitPrice As Decimal = existingRow("UnitPrice")
-                Dim wholesalePrice As Decimal = unitPrice * (1 - (wholesaleDiscount / 100))
-
-                If currentUnitPrice = unitPrice AndAlso newQuantity >= wholesaleMinimumQuantity AndAlso autoApplyWholesale Then
-                    existingRow("UnitPrice") = wholesalePrice
-                    MessageBox.Show($"Wholesale discount of {wholesaleDiscount}% has been automatically applied to {productName} " &
-                                $"since quantity is now {newQuantity} (minimum {wholesaleMinimumQuantity}).",
-                                "Wholesale Pricing Applied", MessageBoxButtons.OK, MessageBoxIcon.Information)
-                End If
-
                 existingRow("Quantity") = newQuantity
                 existingRow("Total") = newQuantity * existingRow("UnitPrice")
             Else
                 Dim rowIndex As Integer = cart.Rows.Count + 1
-                Dim newRow = cart.Rows.Add(rowIndex, barcode, productName, manualQuantity, finalPrice, 0, manualQuantity * finalPrice)
-
-                If wholesaleApplied Then
-                    newRow("ItemName") = productName & " (Wholesale)"
-                End If
+                cart.Rows.Add(rowIndex, barcode, productName, manualQuantity, unitPrice, 0, manualQuantity * unitPrice)
             End If
 
+            ' Refresh the DataGridView and update the cart summary
             dgvCart.DataSource = Nothing
             dgvCart.DataSource = cart
             UpdateCartSummary()
@@ -427,6 +419,7 @@ Public Class POS
         lblVatUI.Visible = True
         txtBarcode.Focus()
 
+        ' Hide specific columns
         dgvCart.Columns("Barcode").Visible = False
         dgvCart.Columns("Discount").Visible = False
         dgvCart.Columns("Total").Visible = False

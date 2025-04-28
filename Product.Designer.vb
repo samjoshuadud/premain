@@ -50,9 +50,9 @@ Partial Class Product
         ' 
         ' txtProductName
         ' 
-        txtProductName.Font = New Font("Segoe UI", 10F)
+        txtProductName.Font = New Font("Segoe UI", 10.0F)
         txtProductName.Location = New Point(323, 73)
-        txtProductName.Margin = New Padding(2, 2, 2, 2)
+        txtProductName.Margin = New Padding(2)
         txtProductName.Name = "txtProductName"
         txtProductName.Size = New Size(428, 25)
         txtProductName.TabIndex = 2
@@ -63,7 +63,7 @@ Partial Class Product
         btnAdd.FlatStyle = FlatStyle.Flat
         btnAdd.ForeColor = SystemColors.ButtonHighlight
         btnAdd.Location = New Point(323, 143)
-        btnAdd.Margin = New Padding(2, 2, 2, 2)
+        btnAdd.Margin = New Padding(2)
         btnAdd.Name = "btnAdd"
         btnAdd.Size = New Size(104, 30)
         btnAdd.TabIndex = 9
@@ -80,7 +80,7 @@ Partial Class Product
         dgvProduct.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing
         dgvProduct.EditMode = DataGridViewEditMode.EditProgrammatically
         dgvProduct.Location = New Point(8, 51)
-        dgvProduct.Margin = New Padding(2, 2, 2, 2)
+        dgvProduct.Margin = New Padding(2)
         dgvProduct.MultiSelect = False
         dgvProduct.Name = "dgvProduct"
         dgvProduct.ReadOnly = True
@@ -93,7 +93,7 @@ Partial Class Product
         ' 
         picProductImage.BackColor = SystemColors.ControlLight
         picProductImage.Location = New Point(16, 49)
-        picProductImage.Margin = New Padding(2, 2, 2, 2)
+        picProductImage.Margin = New Padding(2)
         picProductImage.Name = "picProductImage"
         picProductImage.Size = New Size(155, 115)
         picProductImage.SizeMode = PictureBoxSizeMode.Zoom
@@ -106,7 +106,7 @@ Partial Class Product
         btnBrowseImage.FlatStyle = FlatStyle.Flat
         btnBrowseImage.ForeColor = SystemColors.ButtonHighlight
         btnBrowseImage.Location = New Point(39, 167)
-        btnBrowseImage.Margin = New Padding(2, 2, 2, 2)
+        btnBrowseImage.Margin = New Padding(2)
         btnBrowseImage.Name = "btnBrowseImage"
         btnBrowseImage.Size = New Size(111, 30)
         btnBrowseImage.TabIndex = 8
@@ -117,7 +117,7 @@ Partial Class Product
         ' 
         chkExpirationOption.AutoSize = True
         chkExpirationOption.Location = New Point(323, 122)
-        chkExpirationOption.Margin = New Padding(2, 2, 2, 2)
+        chkExpirationOption.Margin = New Padding(2)
         chkExpirationOption.Name = "chkExpirationOption"
         chkExpirationOption.Size = New Size(106, 19)
         chkExpirationOption.TabIndex = 7
@@ -130,7 +130,7 @@ Partial Class Product
         btnReset.FlatStyle = FlatStyle.Flat
         btnReset.ForeColor = SystemColors.ButtonHighlight
         btnReset.Location = New Point(648, 143)
-        btnReset.Margin = New Padding(2, 2, 2, 2)
+        btnReset.Margin = New Padding(2)
         btnReset.Name = "btnReset"
         btnReset.Size = New Size(104, 30)
         btnReset.TabIndex = 12
@@ -143,7 +143,7 @@ Partial Class Product
         btnDelete.FlatStyle = FlatStyle.Flat
         btnDelete.ForeColor = SystemColors.ButtonHighlight
         btnDelete.Location = New Point(540, 143)
-        btnDelete.Margin = New Padding(2, 2, 2, 2)
+        btnDelete.Margin = New Padding(2)
         btnDelete.Name = "btnDelete"
         btnDelete.Size = New Size(104, 30)
         btnDelete.TabIndex = 11
@@ -156,7 +156,7 @@ Partial Class Product
         btnEdit.FlatStyle = FlatStyle.Flat
         btnEdit.ForeColor = SystemColors.ButtonHighlight
         btnEdit.Location = New Point(431, 143)
-        btnEdit.Margin = New Padding(2, 2, 2, 2)
+        btnEdit.Margin = New Padding(2)
         btnEdit.Name = "btnEdit"
         btnEdit.Size = New Size(104, 30)
         btnEdit.TabIndex = 10
@@ -166,7 +166,7 @@ Partial Class Product
         ' Label2
         ' 
         Label2.BackColor = Color.Transparent
-        Label2.Font = New Font("Segoe UI Semibold", 12F, FontStyle.Bold)
+        Label2.Font = New Font("Segoe UI Semibold", 12.0F, FontStyle.Bold)
         Label2.ForeColor = SystemColors.ActiveCaptionText
         Label2.Location = New Point(182, 70)
         Label2.Margin = New Padding(2, 0, 2, 0)
@@ -178,7 +178,7 @@ Partial Class Product
         ' Label3
         ' 
         Label3.BackColor = Color.Transparent
-        Label3.Font = New Font("Segoe UI Semibold", 12F, FontStyle.Bold)
+        Label3.Font = New Font("Segoe UI Semibold", 12.0F, FontStyle.Bold)
         Label3.ForeColor = SystemColors.ActiveCaptionText
         Label3.Location = New Point(182, 94)
         Label3.Margin = New Padding(2, 0, 2, 0)
@@ -202,7 +202,7 @@ Partial Class Product
         PanelProduct.Controls.Add(Label2)
         PanelProduct.Controls.Add(chkExpirationOption)
         PanelProduct.Location = New Point(208, 87)
-        PanelProduct.Margin = New Padding(2, 2, 2, 2)
+        PanelProduct.Margin = New Padding(2)
         PanelProduct.Name = "PanelProduct"
         PanelProduct.Size = New Size(762, 253)
         PanelProduct.TabIndex = 33
@@ -216,7 +216,7 @@ Partial Class Product
         Button3.ForeColor = Color.Transparent
         Button3.Image = CType(resources.GetObject("Button3.Image"), Image)
         Button3.Location = New Point(714, 2)
-        Button3.Margin = New Padding(2, 2, 2, 2)
+        Button3.Margin = New Padding(2)
         Button3.Name = "Button3"
         Button3.Size = New Size(46, 30)
         Button3.TabIndex = 96
@@ -224,11 +224,11 @@ Partial Class Product
         ' 
         ' cboCategory
         ' 
-        cboCategory.Font = New Font("Segoe UI", 10F)
+        cboCategory.Font = New Font("Segoe UI", 10.0F)
         cboCategory.FormattingEnabled = True
         cboCategory.Items.AddRange(New Object() {"Dairy", "Meat & Poultry", "Beverages", "Canned Goods", "Snacks", "Bakery", "Frozen Foods", "Condiments & Sauces" & vbTab, "Grains & Pasta", "Baby Food & Products", "Household Items" & vbTab})
         cboCategory.Location = New Point(323, 97)
-        cboCategory.Margin = New Padding(2, 2, 2, 2)
+        cboCategory.Margin = New Padding(2)
         cboCategory.Name = "cboCategory"
         cboCategory.Size = New Size(428, 25)
         cboCategory.TabIndex = 3
@@ -237,7 +237,7 @@ Partial Class Product
         ' 
         Label1.AutoSize = True
         Label1.BackColor = Color.Transparent
-        Label1.Font = New Font("Segoe UI Black", 12F, FontStyle.Bold)
+        Label1.Font = New Font("Segoe UI Black", 12.0F, FontStyle.Bold)
         Label1.ForeColor = SystemColors.ButtonHighlight
         Label1.Location = New Point(18, 10)
         Label1.Margin = New Padding(2, 0, 2, 0)
@@ -250,7 +250,7 @@ Partial Class Product
         ' 
         PanelCategory.Controls.Add(Label1)
         PanelCategory.Location = New Point(8, 7)
-        PanelCategory.Margin = New Padding(2, 2, 2, 2)
+        PanelCategory.Margin = New Padding(2)
         PanelCategory.Name = "PanelCategory"
         PanelCategory.Size = New Size(167, 40)
         PanelCategory.TabIndex = 38
@@ -263,7 +263,7 @@ Partial Class Product
         Button2.ForeColor = Color.Transparent
         Button2.Image = CType(resources.GetObject("Button2.Image"), Image)
         Button2.Location = New Point(1134, 17)
-        Button2.Margin = New Padding(2, 2, 2, 2)
+        Button2.Margin = New Padding(2)
         Button2.Name = "Button2"
         Button2.Size = New Size(46, 30)
         Button2.TabIndex = 94
@@ -277,7 +277,7 @@ Partial Class Product
         btnCLose.ForeColor = Color.Transparent
         btnCLose.Image = CType(resources.GetObject("btnCLose.Image"), Image)
         btnCLose.Location = New Point(1173, 17)
-        btnCLose.Margin = New Padding(2, 2, 2, 2)
+        btnCLose.Margin = New Padding(2)
         btnCLose.Name = "btnCLose"
         btnCLose.Size = New Size(46, 30)
         btnCLose.TabIndex = 93
@@ -285,9 +285,9 @@ Partial Class Product
         ' 
         ' txtSearch
         ' 
-        txtSearch.Font = New Font("Segoe UI", 12F)
+        txtSearch.Font = New Font("Segoe UI", 12.0F)
         txtSearch.Location = New Point(963, 24)
-        txtSearch.Margin = New Padding(2, 2, 2, 2)
+        txtSearch.Margin = New Padding(2)
         txtSearch.Name = "txtSearch"
         txtSearch.PlaceholderText = " 🔍 Search Product"
         txtSearch.Size = New Size(168, 29)
@@ -295,7 +295,7 @@ Partial Class Product
         ' 
         ' Product
         ' 
-        AutoScaleDimensions = New SizeF(7F, 15F)
+        AutoScaleDimensions = New SizeF(7.0F, 15.0F)
         AutoScaleMode = AutoScaleMode.Font
         ClientSize = New Size(1228, 577)
         Controls.Add(Button2)
@@ -305,7 +305,7 @@ Partial Class Product
         Controls.Add(dgvProduct)
         Controls.Add(PanelCategory)
         FormBorderStyle = FormBorderStyle.None
-        Margin = New Padding(2, 2, 2, 2)
+        Margin = New Padding(2)
         Name = "Product"
         Text = "Product Management"
         CType(dgvProduct, ComponentModel.ISupportInitialize).EndInit()
