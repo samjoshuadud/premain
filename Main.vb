@@ -48,22 +48,22 @@ Public Class Main
         ' Check database connection and create admin if needed
         ' ... existing code ...
     End Sub
-    
+
     ' Method to set the form size and position based on screen resolution
     Private Sub SetFormSizeAndPosition()
         ' Get the primary screen working area (excludes taskbar)
         Dim screen As System.Windows.Forms.Screen = System.Windows.Forms.Screen.PrimaryScreen
         Dim workingArea As Rectangle = screen.WorkingArea
-        
+
         ' Set the form size to 90% of the screen
         Me.Width = CInt(workingArea.Width * 0.9)
         Me.Height = CInt(workingArea.Height * 0.9)
-        
+
         ' Center the form on the screen
         Me.Location = New Point(
             CInt((workingArea.Width - Me.Width) / 2),
             CInt((workingArea.Height - Me.Height) / 2))
-            
+
         ' Ensure form doesn't exceed screen bounds
         If Me.Width > workingArea.Width Then Me.Width = workingArea.Width
         If Me.Height > workingArea.Height Then Me.Height = workingArea.Height
@@ -135,7 +135,7 @@ Public Class Main
     Private Sub ReloadUI()
         ' Reload data every time this method is called
         LoadTotalProducts()
-        'LoadTotalSales()
+        LoadTotalSales()
         LoadQuantityInStock()
 
         ' Optionally, reset the background color or other UI elements if needed
@@ -177,32 +177,32 @@ Public Class Main
     End Sub
 
     ' Load total sales for today
-    'Private Sub LoadTotalSales()
-    '    Try
-    '        Using conn As New SqlConnection(connectionString)
-    '            conn.Open()
+    Private Sub LoadTotalSales()
+        Try
+            Using conn As New SqlConnection(connectionString)
+                conn.Open()
 
-    '            ' SQL query to sum total sales for today
-    '            Dim query As String = "SELECT SUM(si.TotalPrice) " &
-    '                              "FROM SaleItems si " &
-    '                              "JOIN Sales s ON si.SaleID = s.SaleID " &
-    '                              "WHERE CAST(s.SaleDate AS DATE) = CAST(GETDATE() AS DATE)"
+                ' SQL query to sum total sales for today
+                Dim query As String = "SELECT SUM(si.TotalPrice) " &
+                                  "FROM SaleItems si " &
+                                  "JOIN Sales s ON si.SaleID = s.SaleID " &
+                                  "WHERE CAST(s.SaleDate AS DATE) = CAST(GETDATE() AS DATE)"
 
-    '            Using cmd As New SqlCommand(query, conn)
-    '                ' Execute the query and check if result is NULL
-    '                Dim result As Object = cmd.ExecuteScalar()
+                Using cmd As New SqlCommand(query, conn)
+                    ' Execute the query and check if result is NULL
+                    Dim result As Object = cmd.ExecuteScalar()
 
-    '                ' Check if result is DBNull (null) and set totalSales to 0 if no sales today
-    '                Dim totalSales As Decimal = If(result Is DBNull.Value OrElse result Is Nothing, 0D, Convert.ToDecimal(result))
+                    ' Check if result is DBNull (null) and set totalSales to 0 if no sales today
+                    Dim totalSales As Decimal = If(result Is DBNull.Value OrElse result Is Nothing, 0D, Convert.ToDecimal(result))
 
-    '                ' Update the label with total sales
-    '                lblTotalSales.Text = totalSales.ToString("C")
-    '            End Using
-    '        End Using
-    '    Catch ex As Exception
-    '        MessageBox.Show("Error loading total sales: " & ex.Message, "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
-    '    End Try
-    'End Sub
+                    ' Update the label with total sales
+                    lblTotalSales.Text = totalSales.ToString("C")
+                End Using
+            End Using
+        Catch ex As Exception
+            MessageBox.Show("Error loading total sales: " & ex.Message, "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+        End Try
+    End Sub
 
     ' Load the quantity in stock
     Private Sub LoadQuantityInStock()
@@ -277,7 +277,7 @@ Public Class Main
         MainPanel.Visible = True
         MainPanel.Dock = DockStyle.Fill
         MainPanel.BringToFront()
-        
+
         ' Remove Panel5 to prevent overlap issues
         If Panel5.Visible Then
             Panel5.Visible = False
@@ -287,12 +287,12 @@ Public Class Main
         childForm.TopLevel = False
         childForm.FormBorderStyle = FormBorderStyle.None
         childForm.Dock = DockStyle.Fill
-        
+
         ' Add to panel and show
         MainPanel.Controls.Add(childForm)
         childForm.BringToFront()
         childForm.Show()
-        
+
         ' Force layout update
         MainPanel.PerformLayout()
         Application.DoEvents()
